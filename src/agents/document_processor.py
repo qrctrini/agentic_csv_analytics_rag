@@ -1,21 +1,21 @@
 from typing import List, Dict, Any
 from langchain_community.document_loaders import UnstructuredExcelLoader, UnstructuredCSVLoader
-
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
+from loguru import logger
 import logging
 from pydantic import BaseModel
 import os
 import pathlib
 
-logger = logging.getLogger(__name__)
+logger_native = logging.getLogger(__name__)
 
 # ---- project imports
 from src.utils.utils import get_project_filepath
 
 class DocumentProcessor(BaseModel):
-    chunk_size:int = 1000
-    chunk_overlap:int = 200
+    chunk_size:int = 20
+    chunk_overlap:int = 10
     text_splitter:RecursiveCharacterTextSplitter = None
 
     class Config:
@@ -37,7 +37,7 @@ class DocumentProcessor(BaseModel):
             chunk_overlap=self.chunk_overlap
         )
 
-    def load_excel(self, file_path: str) -> List[Document]:
+    def load_csv(self, file_path: str) -> List[Document]:
         """
         Load Excel file using UnstructuredExcelLoader
 
@@ -48,25 +48,29 @@ class DocumentProcessor(BaseModel):
             List of Document objects
         """
         logger.info(f"Loading Excel file: {file_path}")
-        loader = UnstructuredExcelLoader(file_path,mode='elements')
+        loader = UnstructuredCSVLoader(file_path)
         docs = loader.load()
-        logger.info(f"Loaded: excel file {file_path}={docs}")
+        logger.info(f"Loaded: csv file {file_path}={docs}")
         return docs
-
-    def process_documents(self, documents: List[Document]) -> List[Document]:
+    
+    def process_documents(self, documents: List[Document]) -> tuple[Document,dict]:
         """
-        TODO: Process documents by splitting and extracting metadata
+        Process documents by splitting and extracting metadata
 
         Args:
-            documents: List of raw documents
+            documents(list): raw documents
 
         Returns:
-            List of processed Document objects
+            contents (list): lists of contents from document object
+            content (list): list of metadata
         """
-        text = self.text_splitter.split_documents(self.text)
-        logger.info(f"Processing {len(documents)} documents")
-        # TODO: Implement document processing
-        return []
+        docs = self.text_splitter.split_documents(documents)
+        # split the content from the metadata
+        content,metadata = [], []
+        for doc in docs:
+            content.append(doc.page_content)
+            metadata.append(doc.metadata)
+        return content, metadata
 
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -89,4 +93,5 @@ class DocumentProcessor(BaseModel):
 if __name__ == '__main__':
     t = DocumentProcessor()
     t.setup()
-    t.load_excel(file_path=f'{get_project_filepath()}/data/expenditures_2012_2021.xls')
+    documents = t.load_csv(file_path=f'{get_project_filepath()}/data/expenditures_2012_2021.csv')
+    content,metadata = t.process_documents(documents=documents)
