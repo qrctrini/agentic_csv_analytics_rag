@@ -2,7 +2,7 @@
 name = "agent-rag"
 version = "0.1.0"
 description = ""
-authors = ["Elon Salfati <elon@salfati.group>"]
+authors = ["Elon Salfati <elon@salfati.group>","Andre Mayers"]
 readme = "README.md"
 packages = [
   { include = "src" }

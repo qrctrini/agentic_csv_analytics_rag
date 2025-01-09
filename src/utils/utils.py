@@ -11,5 +11,4 @@ def get_project_filepath() -> str:
         filepath (str): filepath of project directory
     """
     filepath = str(pathlib.Path(__file__).parent.parent.parent.resolve())
-    logger.info(f'project filepath={filepath}, {type(filepath)}')
     return filepath

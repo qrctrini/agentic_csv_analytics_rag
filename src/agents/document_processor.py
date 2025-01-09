@@ -48,7 +48,7 @@ class DocumentProcessor(BaseModel):
             List of Document objects
         """
         logger.info(f"Loading Excel file: {file_path}")
-        loader = UnstructuredExcelLoader(file_path)
+        loader = UnstructuredExcelLoader(file_path,mode='elements')
         docs = loader.load()
         logger.info(f"Loaded: excel file {file_path}={docs}")
         return docs
