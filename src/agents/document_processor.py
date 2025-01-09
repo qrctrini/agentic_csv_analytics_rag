@@ -3,14 +3,20 @@ from langchain.document_loaders import UnstructuredExcelLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 import logging
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
-class DocumentProcessor:
-    def __init__(self):
+class DocumentProcessor(BaseModel):
+    chunk_size:int = 1000
+    chunk_overlap:int = 200
+    text_splitter:RecursiveCharacterTextSplitter
+
+
+    def setup(self) -> None:
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200
+            chunk_size=self.chunk_size,
+            chunk_overlap=self.chunk_overlap
         )
 
     def load_excel(self, file_path: str) -> List[Document]:
