@@ -4,6 +4,11 @@ from langchain_core.documents import Document
 from langchain.vectorstores.pgvector import PGVector
 from langchain_anthropic import AnthropicEmbeddings
 import logging
+from langchain.vectorstores.pgvector import DistanceStrategy
+from pydantic import BaseModel
+import openai
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -16,25 +21,40 @@ class VectorStore:
 
         self.embeddings = AnthropicEmbeddings()
         self.collection_name = "insurance_docs"
+        self.embedding_model = "text-embedding-3-small"
 
-    def init_store(self) -> None:
+    
+    
+    def init_store(self,documents:List,embeddings:List[AnthropicEmbeddings]) -> None:
         """
-        TODO: Initialize PGVector store
+        Initialize PGVector store with initial embeddings and docs
+        Args:
+            embeddings(list): list of embeddings
+            doc(list): list of documents (content and metadata)
         """
         logger.info("Initializing vector store")
-        # TODO: Implement store initialization
-        pass
+        # Initialize PGVector store
+        vector_store = PGVector.from_documents(
+            embedding=embeddings,
+            documents=documents,  # Your list of documents
+            collection_name="your_collection_name",
+            connection_string=self.connection_string,
+            use_jsonb=True
+        )
+    
 
-    def add_documents(self, documents: List[Document]) -> None:
+    
+
+    def add_documents(self, documents: List[Document],embeddings:List[AnthropicEmbeddings]) -> None:
         """
-        TODO: Add documents to vector store
+        Add documents to existing vector store
 
         Args:
             documents: List of documents to add
         """
         logger.info(f"Adding {len(documents)} documents to vector store")
-        # TODO: Implement document addition
-        pass
+
+        
 
     def similarity_search(self, query: str, k: int = 4) -> List[Document]:
         """
@@ -49,6 +69,17 @@ class VectorStore:
         """
         logger.info(f"Performing similarity search for: {query}")
         # TODO: Implement similarity search
+        db = PGVector.from_existing_index( 
+            embedding=embeddings,
+            documents=splits,
+            collection_name=self.collection_name,
+            connection_string=self.connection_string
+        )
+        
+        similar = db.similarity_search_with_score(query, k=k)
+
+        for doc in similar:
+            print(doc, end="\n\n")
         return []
 
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
