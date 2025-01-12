@@ -3,15 +3,35 @@ import pandas as pd
 from pydantic import BaseModel
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from openai import OpenAI
+import os
+from functools import lru_cache
+from loguru import logger
+import os
+from dotenv import load_dotenv
+from langchain.embeddings.openai import OpenAIEmbeddings
 
-class MyEmbedder(BaseModel):
-    model:str = None
+load_dotenv()
+
+
+class Embedder(BaseModel):
+    model:str = "text-embedding-3-small"
     embedding:Any = None
     embedder:Any = None
     workers:int = 5
+    FLAGS:dict= {
+        'use_free_embedder':False,
+    }
+    openai_client:Any = None
 
-    def create_embeddings_from_input_text(self,text:str) -> dict:
-        self.embedded = self.embedder(text=text,pretrained_model=self.inputs.model,inputs=self.inputs)
+    def initialize_openai_client(self) -> None:
+        """
+        Initialize the OPEN AI client
+        """
+        try:
+            self.openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        except KeyError as e:
+            logger.error(f"Error in getting_embedding: {e}")
 
     def get_embedding(self,text:str) -> list:
         """Generate an embedding for the given text using OpenAI's API."""
@@ -20,13 +40,17 @@ class MyEmbedder(BaseModel):
             return None
         try:
             # Call OpenAI API to get the embedding
-            embedding = openai.embeddings.create(input=text, model=self.embedding_model).data[0].embedding
-            return embedding
+            response = self.openai_client.embeddings.create(
+                input=text, 
+                model=self.model,
+            )
+            return response.data[0].embedding
         except Exception as e:
-            print(f"Error in get_embedding: {e}")
+            logger.error(f"Error in getting_embedding: {e}")
+            
             return None
-        
-    def threaded_embedder(self,documents:list[Any]) -> list[list]:
+    
+    def threaded_embedder(self,documents:list[str]) -> list[list]:
         """
         Generate embeddings using threading for speedup
         args:
@@ -34,20 +58,20 @@ class MyEmbedder(BaseModel):
         return:
             embeddings(list): list of embeddings
         """
+        self.initialize_openai_client()
         futures,embeddings = [],[]
         with ThreadPoolExecutor(max_workers=self.workers) as executor:
             for doc in documents:
-                futures.append(executor.submit(self.get_embedding,doc.content))
+                futures.append(executor.submit(self.get_embedding,doc))
 
             for future in as_completed(futures):
                 embeddings.append(future.result())
         
         return embeddings
     
-
     def run(self, state: dict[str, Any]) -> dict[str, Any]:
         """
-        Main agent function to be called by the supervisor
+        Embedding function to be called by supervisor
 
         Args:
             state: Current state of the system
@@ -55,10 +79,9 @@ class MyEmbedder(BaseModel):
         Returns:
             Updated state
         """
-        # TODO: Implement agent logic
+        # TODO: Implement agent logic 
         # Example:
-        # 1. Check if there are new documents to store
-        # 2. Add documents to vector store
+        # perform embeddings
         # 3. Update state with storage status
         return state
 

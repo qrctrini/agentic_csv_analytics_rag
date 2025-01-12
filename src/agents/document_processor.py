@@ -18,7 +18,7 @@ from src.utils.agent_state import AgentState
 
 class DocumentProcessor(BaseModel):
     chunk_size:int = 20
-    chunk_overlap:int = 10
+    chunk_overlap:int = 5
     text_splitter:RecursiveCharacterTextSplitter = None
     
     class Config:
@@ -57,7 +57,7 @@ class DocumentProcessor(BaseModel):
             logger.error(f'Upstream error:{e}')
         return docs
     
-    def process_documents(self, documents: List[Document]) -> tuple[Document,dict]:
+    def process_documents(self, documents: List[Document]) -> tuple[List[Document],List[dict]]:
         """
         Process documents by splitting and extracting metadata
 
@@ -67,11 +67,17 @@ class DocumentProcessor(BaseModel):
         Returns:
             docs(list): content with metadata
         """
-        docs = []
+        texts,metadatas = [],[]
         if documents:
+            self.setup()
             docs = self.text_splitter.split_documents(documents)
-            return docs
-        return docs
+            for doc in docs:
+                if not isinstance(doc,str):
+                    texts.append(doc)
+                    metadatas.append(doc.metadata)
+
+            return texts, metadatas
+        return texts, metadatas
 
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -85,20 +91,13 @@ class DocumentProcessor(BaseModel):
         """
         # Example:
         # 1. Check if there are Excel files to process
-        files_to_process = []
         for file_path,data in state.items():
 
             # load and process files
-            documents = t.load_csv(file_path=file_path)
-            docs = t.process_documents(documents=documents)
+            documents = self.load_csv(file_path=file_path)
 
             # add dct to state
-        return state
+        return state[file_path][documents]
 
-
-if __name__ == '__main__':
-    t = DocumentProcessor()
-    t.setup()
-    #documents = t.load_csv(file_path=f'{get_project_filepath()}/data/expenditures_2012_2021.csv')
 
     
