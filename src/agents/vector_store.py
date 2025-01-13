@@ -6,8 +6,20 @@ from loguru import logger
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores.pgvector import DistanceStrategy
 from pydantic import BaseModel
+from datetime import time
 from dotenv import load_dotenv
 load_dotenv()
+
+# project imports
+from src.utils.utils import get_project_filepath
+
+# setup loggers
+logger.add(
+    f"{get_project_filepath()}/logs/logfile.log",
+    rotation=time(0, 0),
+    format="{time} {level} {message}",
+    level="DEBUG"
+    )
 
 class VectorStore:
     def __init__(self):
@@ -19,6 +31,8 @@ class VectorStore:
         self.collection_name:str = "insurance_docs"
         self.vector_store:PGVector = None
         self.embeddings = OpenAIEmbeddings()
+        self.current_state_key:str = 'vector_store'
+        self.next_state_key:str = 'insurance_analysis'
 
     def init_store(self) -> None:
         """
@@ -42,7 +56,7 @@ class VectorStore:
         except IOError as e:
             logger.error(f'Error: problem writing embeddings to postgres vector store:{e}')
 
-    def add_documents(self, documents: List[str],metadatas:List[dict], embeddings:List[list]) -> None:
+    def add_documents(self, documents: List[str]) -> None:
         """
         Add documents to existing vector store
 
@@ -56,7 +70,7 @@ class VectorStore:
         # add documents
         self.vector_store.add_documents(documents)
             
-    def similarity_search(self, query: str, k: int = 4) -> List[Document]:
+    def similarity_search(self, query: str, k: int = 3) -> List[Document]:
         """
         Perform similarity search
 
@@ -72,9 +86,6 @@ class VectorStore:
             self.init_store()
        
         similar_docs = self.vector_store.similarity_search_with_score(query=query, k=k)
-
-        for idx,doc in enumerate(similar_docs):
-            logger.info(f'{idx}.{doc}')
         return similar_docs
 
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
@@ -92,4 +103,15 @@ class VectorStore:
         # 1. Check if there are new documents to store
         # 2. Add documents to vector store
         # 3. Update state with storage status
+        if self.current_state_key in state:
+            for file_path,documents in state[self.current_state_key].items():
+                try:
+                    # save documents
+                    self.add_documents(documents=documents)
+                    # update saved status
+                    state[self.current_state_key][file_path]['saved_status'] = True
+                except Exception as e:
+                    logger.error(f'{self.current_state_key} Error:{e}')
+        else:
+            raise(f'{self.current_state_key} Error: files_to_process is not a key in state')
         return state

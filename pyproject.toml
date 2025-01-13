@@ -29,6 +29,7 @@ unstructured = "^0.16.12"
 networkx = "^3.4.2"
 loguru = "^0.7.3"
 psycopg-binary = "^3.2.3"
+xlrd = "^2.0.1"
 
 
 [build-system]
