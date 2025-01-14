@@ -15,7 +15,6 @@ def get_project_filepath() -> str:
     filepath = str(pathlib.Path(__file__).parent.parent.parent.resolve())
     return filepath
 
-
 def get_list_of_files_in_directory(dir_path:str=None) -> list[str]:
     """
     Get list of files in directory
@@ -38,7 +37,7 @@ def convert_excel_to_csv(dir_path:str,filename:str,save_to_dir:str) -> None:
         filename(str): filename
         
     Returns:
-                
+        -
     """
     original_filepath=f'{dir_path}/{filename}'
     #df = pd.read_excel(original_filepath, sheet_name='Sheet1', header=0,engine='xlrd')

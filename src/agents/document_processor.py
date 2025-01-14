@@ -13,6 +13,7 @@ import os
 import pathlib
 import pandas as pd
 from datetime import time
+import json
 
 # ---- project imports
 from src.utils.utils import get_project_filepath, get_list_of_files_in_directory
@@ -30,15 +31,13 @@ logger.add(
     )
 
 class DocumentProcessor(BaseModel):
-
     chunk_size:int = 50
     chunk_overlap:int = 10
     text_splitter:RecursiveCharacterTextSplitter = None
     dir_path:str = f'{get_project_filepath()}/data'
+    content_loaded_tracker:list = []
     
-    current_state_key:str = 'document_processor'
-    next_state_key:str = 'vector_store'
-    
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -115,7 +114,6 @@ class DocumentProcessor(BaseModel):
             docs = []
         return docs
     
-    
     def process_documents(self, documents: List[Document]) -> List[Document]:
         """
         Process documents by splitting and extracting metadata
@@ -145,28 +143,32 @@ class DocumentProcessor(BaseModel):
             state(AgentState): Current state
               
         Returns:
-            Updated state
+            state message: Documents
         """
-        logger.warning(f'Document Processor Message state == {state}')
-        self.setup()
-        
-        if state is not None:
-            processed_documents = {}
-            files_to_load = get_list_of_files_in_directory(dir_path=state)
-            logger.warning(f'files to load:{files_to_load}')
-            for file_path in files_to_load:
-                try:
-                    # load and process files
-                    file_path = f'{state}/{file_path}'
-                    loaded_documents = self.load_csv(file_path=file_path)
-                    processed_documents[file_path] = self.process_documents(documents=loaded_documents)
-                   
-                except Exception as e:
-                    logger.error(f'DocumentProcessor Error:{e}')
-            return processed_documents
+        logger.warning(f'state={state}')
+        if state not in self.content_loaded_tracker:
+            self.setup()
+            if state is not None:
+                processed_documents = []
+                files_to_load = get_list_of_files_in_directory(dir_path=state)
+                logger.warning(f'files to load:{files_to_load}')
+                for file_path in files_to_load:
+                    try:
+                        # load and process files
+                        file_path = f'{state}/{file_path}'
+                        loaded_documents = self.load_csv(file_path=file_path)
+                        for doc in loaded_documents:
+                            processed_documents.append({"content":doc.page_content,"metadata":doc.metadata})
+                    except Exception as e:
+                        logger.error(f'DocumentProcessor Error:{e}')
+
+                self.content_loaded_tracker.append(state)
+                #return {"documents": processed_documents}
+                #processed_documents = ",  ".join(processed_documents)
+                return f"send to vector_store as a JSON object with keys : 'Year', 'Average expenditure', 'Percent change','metadata'.Do not perform any aggregations:{processed_documents}"
         else:
             logger.warning(f'There are no documents to process!')
-            return {}
+        return {}
 
 
     

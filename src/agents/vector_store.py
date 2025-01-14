@@ -7,6 +7,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores.pgvector import DistanceStrategy
 from pydantic import BaseModel
 from datetime import time
+import ast
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -31,9 +32,7 @@ class VectorStore:
         self.collection_name:str = "insurance_docs"
         self.vector_store:PGVector = None
         self.embeddings = OpenAIEmbeddings()
-        self.current_state_key:str = 'vector_store'
-        self.next_state_key:str = 'insurance_analysis'
-
+       
     def init_store(self) -> None:
         """
         Initialize PGVector store with initial embeddings and docs
@@ -55,7 +54,15 @@ class VectorStore:
             logger.info(f'store initialized')
         except IOError as e:
             logger.error(f'Error: problem writing embeddings to postgres vector store:{e}')
-
+    
+    def clear_store(self):
+        try:
+            self.init_store()
+            self.vector_store.delete_collection()
+            logger.info(f'Vector Store Cleared!')
+        except IOError as e:
+            logger.error(f'Clear vector store error:{e}')
+        
     def add_documents(self, documents: List[str]) -> None:
         """
         Add documents to existing vector store
@@ -98,20 +105,26 @@ class VectorStore:
         Returns:
             Updated state
         """
-        # TODO: Implement agent logic
-        # Example:
-        # 1. Check if there are new documents to store
-        # 2. Add documents to vector store
-        # 3. Update state with storage status
-        if self.current_state_key in state:
-            for file_path,documents in state[self.current_state_key].items():
-                try:
+        logger.info(f'++++{type(state)} ---  state={state}')
+        if isinstance(state,str):
+            state = ast.literal_eval(state)
+            logger.warning(f'{type(state)}****state:{state}')
+           
+            if isinstance(state,list):
+                documents = []
+                for item in state:
+                    logger.info(f'type item={type(item)}')
+                    content,metadata=item['content'],item['metadata']
+                    logger.info(f'content={content}, metadata={metadata}')
                     # save documents
-                    self.add_documents(documents=documents)
-                    # update saved status
-                    state[self.current_state_key][file_path]['saved_status'] = True
-                except Exception as e:
-                    logger.error(f'{self.current_state_key} Error:{e}')
+                    document = Document(page_content=content,metadata=metadata)
+                    documents.append(document)
+                    try:
+                        self.add_documents(documents=documents)
+                        logger.info(f'document added to vector store:{document}')
+                        return 'Document successful inserted to datastore'
+                    except Exception as e:
+                        logger.error(f'Vector store Error:{e}')
+                        return 'FAILURE'
         else:
-            raise(f'{self.current_state_key} Error: files_to_process is not a key in state')
-        return state
+            return 'Document not inserted to vector store'
