@@ -147,7 +147,7 @@ if __name__ == '__main__':
     # messages = [
     #     SystemMessage(content="""
     #         System: You have access to documents with the following columns: 'Year,Average expenditure,Percent change'.
-    #         Given a user question about the data, write the Python code to answer it.
+    #         Given a user question about the data, write the Python code to answer it, and use the python code to answer it,
     #         If the question requires complex data analysis, use a Python REPL.
     #         If the question is about specific data points, use a retriever.
     #         Don't assume you have access to any libraries other than built-in Python ones and pandas.
