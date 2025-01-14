@@ -1,7 +1,11 @@
 from typing import List, Dict, Any
-from langchain_community.document_loaders import UnstructuredExcelLoader, UnstructuredCSVLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter, CSVTextSplitter
+from langchain_community.document_loaders import UnstructuredCSVLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
+from langchain.agents import AgentExecutor, create_openai_tools_agent
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+
+from langgraph.prebuilt import create_react_agent
 from loguru import logger
 import logging
 from pydantic import BaseModel
@@ -12,8 +16,9 @@ from datetime import time
 
 # ---- project imports
 from src.utils.utils import get_project_filepath, get_list_of_files_in_directory
-from src.utils.agent_state import AgentState
 from src.utils.agent_state import State
+from langchain_core.messages import AIMessage
+
 
 # setup loggers
 logger_native = logging.getLogger(__name__)
@@ -25,9 +30,10 @@ logger.add(
     )
 
 class DocumentProcessor(BaseModel):
+
     chunk_size:int = 50
     chunk_overlap:int = 10
-    text_splitter:CSVTextSplitter
+    text_splitter:RecursiveCharacterTextSplitter = None
     dir_path:str = f'{get_project_filepath()}/data'
     
     current_state_key:str = 'document_processor'
@@ -45,7 +51,6 @@ class DocumentProcessor(BaseModel):
             chunk_overlap=self.chunk_overlap
         )
        
-    
     def get_filenames_from_folder(self,dir_path:str) -> list[str]: 
         """
         Get list of Excel files, filter for desirable characteristics
@@ -63,14 +68,13 @@ class DocumentProcessor(BaseModel):
         else:
             raise(f'There are no files to be found in {dir_path}')
         return files
-
         
     def load_csv(self, file_path: str) -> List[Document]:
         """
-        Load Excel file using UnstructuredExcelLoader
+        Load CSV file
 
         Args:
-            file_path: Path to the Excel file
+            file_path: Path to the file
 
         Returns:
             List of Document objects
@@ -88,7 +92,29 @@ class DocumentProcessor(BaseModel):
             docs = []
         return docs
     
-   
+    def load_df(self, df: pd.DataFrame) -> List[Document]:
+        """
+        Load dataframe
+
+        Args:
+            df: pandas DataFrame
+
+        Returns:
+            List of Document objects
+        """
+        try:
+            if df is not None:
+                # Concatenate all the columns into a string for each row
+                texts = df.apply(lambda row: ' | '.join(row.astype(str)), axis=1).tolist()
+                # Convert each row of text into a LangChain Document
+                docs = [Document(page_content=text) for text in texts]
+            raise('Load dataframe error: Dataframe is not loaded')
+
+        except Exception as e:
+            logger.error(f'Upstream error:{e}')
+            docs = []
+        return docs
+    
     
     def process_documents(self, documents: List[Document]) -> List[Document]:
         """
@@ -111,7 +137,7 @@ class DocumentProcessor(BaseModel):
             return split_documents
         return split_documents
 
-    def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
+    def run(self, state: str) -> Dict[str,list]:
         """
         Main agent function to be called by the supervisor
 
@@ -121,24 +147,26 @@ class DocumentProcessor(BaseModel):
         Returns:
             Updated state
         """
-        # Example:
-        # 1. Check if there are Excel files to process
-        if self.current_state_key in state:
-            for file_path in state[self.current_state_key]:
+        logger.warning(f'Document Processor Message state == {state}')
+        self.setup()
+        
+        if state is not None:
+            processed_documents = {}
+            files_to_load = get_list_of_files_in_directory(dir_path=state)
+            logger.warning(f'files to load:{files_to_load}')
+            for file_path in files_to_load:
                 try:
                     # load and process files
+                    file_path = f'{state}/{file_path}'
                     loaded_documents = self.load_csv(file_path=file_path)
-                    processed_documents = self.process_documents(documents=loaded_documents)
-                    # update state with documents to process
-                    state[self.next_state_key][file_path] = {'documents':processed_documents,'saved_status':False}
-                    # remove processed file from filepath
-                    state[self.current_state_key].remove(file_path)
+                    processed_documents[file_path] = self.process_documents(documents=loaded_documents)
+                   
                 except Exception as e:
                     logger.error(f'DocumentProcessor Error:{e}')
+            return processed_documents
         else:
-            raise('DocumentProcessor Error: files_to_process is not a key in state')
-
-        return state
+            logger.warning(f'There are no documents to process!')
+            return {}
 
 
     

@@ -5,9 +5,10 @@ from langchain.tools import Tool
 from langchain.chains.qa_with_sources.retrieval import RetrievalQAWithSourcesChain
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
-from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnableLambda
-
+from typing import Annotated
+from langchain_core.tools import tool
+from langchain_experimental.utilities import PythonREPL
+from langchain_experimental.tools import PythonREPLTool
 import logging
 import os
 import random
@@ -70,7 +71,7 @@ class InsuranceAnalysisAgent:
                 func=self.vector_store.similarity_search,
                 description="Search through insurance documents"
             ),
-            # TODO: Add more tools for analysis
+            PythonREPLTool()
         ]
         return tools
 
@@ -143,19 +144,7 @@ class InsuranceAnalysisAgent:
 
 if __name__ == '__main__':
     ins = InsuranceAnalysisAgent()
-    query = 'How many distinct years are in this dataset?'
-    # messages = [
-    #     SystemMessage(content="""
-    #         System: You have access to documents with the following columns: 'Year,Average expenditure,Percent change'.
-    #         Given a user question about the data, write the Python code to answer it, and use the python code to answer it,
-    #         If the question requires complex data analysis, use a Python REPL.
-    #         If the question is about specific data points, use a retriever.
-    #         Don't assume you have access to any libraries other than built-in Python ones and pandas.
-    #         Make sure to refer only to the variables mentioned above.
-    #         Be careful to not query for columns that do not exist. 
-    #         """),
-    #     HumanMessage(content=query)
-    # ]
+    query = 'What is a important trend in Average expenditure?'
     p = Prompt(query)
     print(f'p={p.messages}')
     state = ins.run(state={'query':p.messages})

@@ -23,17 +23,17 @@ class Launcher(BaseModel):
         """
         Launch the agents in sequence
         """
-        # process the documents with text splitter
-        d = DocumentProcessor()
-        dir_path = f'{get_project_filepath()}/data/csv'
-        filenames = d.get_filenames_from_folder(dir_path)
-        logger.info(f'files={filenames}')
-        start = datetime.now()
-        # save to vector store
-        vs = VectorStore()
-        for filename in filenames:
-            documents = d.load_csv(file_path=f'{dir_path}/{filename}')
-            documents = d.process_documents(documents=documents)
+        # # process the documents with text splitter
+        # d = DocumentProcessor()
+        # dir_path = f'{get_project_filepath()}/data/csv'
+        # filenames = d.get_filenames_from_folder(dir_path)
+        # logger.info(f'files={filenames}')
+        # start = datetime.now()
+        # # save to vector store
+        # vs = VectorStore()
+        # for filename in filenames:
+        #     documents = d.load_csv(file_path=f'{dir_path}/{filename}')
+        #     documents = d.process_documents(documents=documents)
             #vs.add_documents(documents=documents)
         
         #save to store

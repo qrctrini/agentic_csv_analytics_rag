@@ -14,6 +14,13 @@ class Prompt:
             Make sure to refer only to the variables mentioned above.
             Be careful to not query for columns that do not exist. 
             """
+        self.system_message = """
+            You have access to documents with tcolumns named "Year","Average expenditure", "Percent change".
+            You have access to a python REPL, which you can use to execute python code.
+            If you get an error, debug your code and try again. 
+            If the question requires complex data analysis, use a Python REPL.
+            If the question is about specific data points, use a retriever.
+        """
         self.messages = [
             SystemMessage(content=self.system_message),
             HumanMessage(content=query)
