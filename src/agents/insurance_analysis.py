@@ -9,6 +9,7 @@ from typing import Annotated
 from langchain_core.tools import tool
 from langchain_experimental.utilities import PythonREPL
 from langchain_experimental.tools import PythonREPLTool
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 import logging
 import os
 import random
@@ -83,8 +84,8 @@ class InsuranceAnalysisAgent:
             Initialized AgentExecutor
         """
         # Create the agent
-        model = ChatAnthropic(model_name=self.model_name)
-        agent_executor = create_react_agent(model, self.tools, checkpointer=self.memory)
+        # model = ChatAnthropic(model_name=self.model_name)
+        agent_executor = create_react_agent(self.llm, self.tools, checkpointer=self.memory)
         return agent_executor
     
     def _generate_thread_id(self) -> str:
@@ -116,10 +117,10 @@ class InsuranceAnalysisAgent:
             if 'agent' in chunk:
                 message = chunk['agent']['messages']
                 messages.append(message)
-                print(f'{type(chunk)=}...{chunk=}\n\n')
+                logger.info(f'{type(chunk)=}...{chunk=}\n\n')
            
         return messages
-
+    
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
         Main agent function to be called by the supervisor
@@ -132,20 +133,24 @@ class InsuranceAnalysisAgent:
         """
         # -- Implement agent logic
         # Extract query from state
-        query = state.get('query')
+        #query = state.get('query')
         # Run analysis
-        if query is not None:
-            output = self.analyze_trends(query=query)       
+        # if query is not None:
+        #     output = self.analyze_trends(query=query)       
         # Update state with results
-        state['response'] = output
-        return state
+        if state:
+            logger.warning(f'inside analyze really: {state}')
+            output = self.analyze_trends(query=state)  
+            logger.info(output)
+        
+            return f'FINISH - {output}'
+        return 'FINISH'
     
 
-
-if __name__ == '__main__':
-    ins = InsuranceAnalysisAgent()
-    query = 'What is a important trend in Average expenditure?'
-    p = Prompt(query)
-    print(f'p={p.messages}')
-    state = ins.run(state={'query':p.messages})
-    logger.info(f'state={state}')
+# if __name__ == '__main__':
+#     ins = InsuranceAnalysisAgent()
+#     query = 'What is a important trend in Average expenditure?'
+#     p = Prompt(query)
+#     print(f'p={p.messages}')
+#     state = ins.run(state={'query':p.messages})
+#     logger.info(f'state={state}')

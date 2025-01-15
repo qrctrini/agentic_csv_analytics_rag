@@ -15,20 +15,19 @@ from src.utils.agent_state import State
 
 class Router(TypedDict):
     """Worker to route to next. If no workers needed, route to FINISH."""
-    next: Literal["document_processor", "vector_store","analysis","FINISH"]
+    next: Literal["document_processor", "analysis","FINISH"]
 
 
 class Supervisor(BaseModel):
-    members:list = ["document_processor", "vector_store","analysis"]
+    members:list = ["document_processor", "analysis"]
     system_prompt:list = (
         "You are a supervisor tasked with managing a conversation between the"
         f" following workers: {members}. Given the following user request,"
         " respond with the worker to act next. Each worker will perform a"
         " task and respond with their results and status. When finished,"
-        " respond with FINISH. Submit the messages to each note as a string without splitting it up "
+        " respond with FINISH."
     )
     llm:Any = ChatAnthropic(api_key=os.getenv('ANTHROPIC_API_KEY'), model="claude-3-5-sonnet-latest")
-
 
 def supervisor_node(state: MessagesState) -> Command:
     supervisor = Supervisor()

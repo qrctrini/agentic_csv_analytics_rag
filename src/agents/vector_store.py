@@ -5,6 +5,8 @@ from langchain_postgres.vectorstores import PGVector
 from loguru import logger
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores.pgvector import DistanceStrategy
+from langchain.indexes import SQLRecordManager, index
+
 from pydantic import BaseModel
 from datetime import time
 import ast
@@ -32,6 +34,13 @@ class VectorStore:
         self.collection_name:str = "insurance_docs"
         self.vector_store:PGVector = None
         self.embeddings = OpenAIEmbeddings()
+
+        # -- managing upserts
+        self.namespace = f"pgvector/{self.connection_string}"
+        self.record_manager = SQLRecordManager(
+            self.namespace, db_url=self.connection_string
+        )
+
        
     def init_store(self) -> None:
         """
@@ -63,7 +72,7 @@ class VectorStore:
         except IOError as e:
             logger.error(f'Clear vector store error:{e}')
         
-    def add_documents(self, documents: List[str]) -> None:
+    def add_documents(self, documents: List[Document]) -> None:
         """
         Add documents to existing vector store
 
@@ -75,7 +84,12 @@ class VectorStore:
         if self.vector_store is None:
             self.init_store()
         # add documents
-        self.vector_store.add_documents(documents)
+        documents_added = self.vector_store.add_documents(documents)
+
+        # -- for upserting
+        # index(docs, record_manager, vectorstore, cleanup="incremental", source_id_key="source"))
+
+        return documents_added
             
     def similarity_search(self, query: str, k: int = 3) -> List[Document]:
         """
@@ -109,22 +123,24 @@ class VectorStore:
         if isinstance(state,str):
             state = ast.literal_eval(state)
             logger.warning(f'{type(state)}****state:{state}')
-           
             if isinstance(state,list):
+                inserted_counter = 0
                 documents = []
                 for item in state:
-                    logger.info(f'type item={type(item)}')
-                    content,metadata=item['content'],item['metadata']
-                    logger.info(f'content={content}, metadata={metadata}')
-                    # save documents
-                    document = Document(page_content=content,metadata=metadata)
-                    documents.append(document)
                     try:
-                        self.add_documents(documents=documents)
+                        logger.info(f'type item={type(item)}')
+                        content,metadata=item['content'],item['metadata']
+                        logger.info(f'content={content}, metadata={metadata}')
+                        # save documents
+                        document = Document(page_content=content,metadata=metadata)
+                        documents.append(document)
+                        documents_added = self.add_documents(documents=documents)
                         logger.info(f'document added to vector store:{document}')
-                        return 'Document successful inserted to datastore'
+                        inserted_counter += 1
                     except Exception as e:
                         logger.error(f'Vector store Error:{e}')
-                        return 'FAILURE'
+
+            return f'Go to analsis node: {documents_added} Documents successfully inserted into vector store'  
+                
         else:
-            return 'Document not inserted to vector store'
+            return 'Documents is in the wrong format'

@@ -18,7 +18,7 @@ class Prompt:
             You have access to documents with tcolumns named "Year","Average expenditure", "Percent change".
             You have access to a python REPL, which you can use to execute python code.
             If you get an error, debug your code and try again. 
-            If the question requires complex data analysis, use a Python REPL.
+            If the question requires complex data analysis, use the Python REPL.
             If the question is about specific data points, use a retriever.
         """
         self.messages = [

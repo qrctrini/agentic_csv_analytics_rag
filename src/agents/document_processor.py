@@ -3,7 +3,6 @@ from langchain_community.document_loaders import UnstructuredCSVLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from langchain.agents import AgentExecutor, create_openai_tools_agent
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 
 from langgraph.prebuilt import create_react_agent
 from loguru import logger
@@ -14,11 +13,14 @@ import pathlib
 import pandas as pd
 from datetime import time
 import json
+import sys
+
+
 
 # ---- project imports
 from src.utils.utils import get_project_filepath, get_list_of_files_in_directory
 from src.utils.agent_state import State
-from langchain_core.messages import AIMessage
+from src.agents.vector_store import VectorStore
 
 
 # setup loggers
@@ -36,8 +38,8 @@ class DocumentProcessor(BaseModel):
     text_splitter:RecursiveCharacterTextSplitter = None
     dir_path:str = f'{get_project_filepath()}/data'
     content_loaded_tracker:list = []
+    vector_store:VectorStore = None
     
-
     class Config:
         arbitrary_types_allowed = True
 
@@ -91,6 +93,30 @@ class DocumentProcessor(BaseModel):
             docs = []
         return docs
     
+    def load_all_files(self,dir_path:str) -> list[str]:
+        """
+        Load all files in director
+
+        Args:
+            dir_path: location of docments
+              
+        Returns:
+            documents(list): loaded files split by textsplitter
+        """
+        files_to_load = get_list_of_files_in_directory(dir_path=dir_path)
+        documents= []
+        if files_to_load:
+            logger.warning(f'files to load:{files_to_load}')
+            for file_path in files_to_load:
+                try:
+                    # load and process files
+                    file_path = f'{dir_path}/{file_path}'
+                    documents  += self.load_csv(file_path=file_path)
+                 
+                except Exception as e:
+                    logger.error(f'DocumentProcessor Error:{e}')
+        return documents
+            
     def load_df(self, df: pd.DataFrame) -> List[Document]:
         """
         Load dataframe
@@ -130,10 +156,38 @@ class DocumentProcessor(BaseModel):
             docs = self.text_splitter.split_documents(documents)
             for doc in docs:
                 if not isinstance(doc,str):
-                    split_documents.append(doc)
+                    #split_documents.append({"content":doc.page_content,"metadata":doc.metadata})
+                    split_documents.append(docs)
                     
-            return split_documents
         return split_documents
+    
+    def process_and_save_documents(self, documents: List[Document]) -> None:
+        """
+        Process documents by splitting and extracting metadata, then save to pgstore
+
+        Args:
+            documents(list): raw documents
+
+        Returns:
+            None
+        """
+        
+        # -- process
+        documents = self.process_documents(documents)
+        if isinstance(documents[0],list):
+            documents = documents[0]
+        logger.info(f'documents:{documents}')
+        # -- save
+        try:
+            if documents:
+                if not self.vector_store:
+                    self.vector_store = VectorStore()
+                # delete all records
+                self.vector_store.clear_store()
+                self.vector_store.add_documents(documents=documents)
+                return 'Documents successfully added'
+        except Exception as e:
+            logger.error(f'error saving documents:{e}')
 
     def run(self, state: str) -> Dict[str,list]:
         """
@@ -148,27 +202,17 @@ class DocumentProcessor(BaseModel):
         logger.warning(f'state={state}')
         if state not in self.content_loaded_tracker:
             self.setup()
-            if state is not None:
-                processed_documents = []
-                files_to_load = get_list_of_files_in_directory(dir_path=state)
-                logger.warning(f'files to load:{files_to_load}')
-                for file_path in files_to_load:
-                    try:
-                        # load and process files
-                        file_path = f'{state}/{file_path}'
-                        loaded_documents = self.load_csv(file_path=file_path)
-                        for doc in loaded_documents:
-                            processed_documents.append({"content":doc.page_content,"metadata":doc.metadata})
-                    except Exception as e:
-                        logger.error(f'DocumentProcessor Error:{e}')
-
-                self.content_loaded_tracker.append(state)
-                #return {"documents": processed_documents}
-                #processed_documents = ",  ".join(processed_documents)
-                return f"send to vector_store as a JSON object with keys : 'Year', 'Average expenditure', 'Percent change','metadata'.Do not perform any aggregations:{processed_documents}"
+            documents = self.load_all_files(dir_path=state)
+            processed_documents = self.process_and_save_documents(documents)
+            # memoize documents loaded this session
+            self.content_loaded_tracker.append(state)
+            #return {"documents": processed_documents}
+            #processed_documents = ",  ".join(processed_documents)
+            #return f"send to vector_store as a JSON object with keys : 'Year', 'Average expenditure', 'Percent change','metadata'.Do not perform any aggregations:{processed_documents}"
+            return f"Goto Analysis node: {processed_documents} documents processed and saved."
         else:
-            logger.warning(f'There are no documents to process!')
-        return {}
+            logger.warning(f'Documents already processed! You are a data analyst. Go to the analyis node')
+            return "Goto analysis mode: Documents already processed! You are a data analyst"
 
 
     

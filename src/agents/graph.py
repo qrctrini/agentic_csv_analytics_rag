@@ -17,12 +17,11 @@ import json
 from src.agents.document_processor import DocumentProcessor
 from src.agents.supervisor import Supervisor
 from src.agents.vector_store import VectorStore
+from src.agents.insurance_analysis import InsuranceAnalysisAgent
 
 # helpers
 from src.utils.utils import get_project_filepath
 from src.agents.supervisor import supervisor_node, Supervisor
-from src.utils.agent_state import State
-import ast
 supervisor = Supervisor()
 
 # ----------------------   create document processor node -----------------------
@@ -41,53 +40,75 @@ document_processor_agent = create_react_agent(supervisor.llm, tools=tools)
 def document_processor_node(state: MessagesState) -> Command[Literal["supervisor"]]:    
     response= document_processor_agent.invoke(state)
     #documents = response['messages'][-2].content
+    logger.warning(f'response:{response}')
     return Command(
         update={
             "messages":[
 
-                HumanMessage(content=[response["messages"][-2].content],name='document_processor')
+                HumanMessage(content=[response["messages"][-1].content],name='document_processor')
             ]
         },
-        goto='supervisor',
+        goto='analysis',
         
     )
 
 # ----------------------   create vector store node -----------------------
 # create tool
-vs = VectorStore()
-tools = [
-    Tool(
-        name="vector_store_tool",
-        func=vs.run,
-        description="Store data from document_processor in vector database"
-    )
-]
-# create agent
-vector_store_agent = create_react_agent(supervisor.llm, tools=tools)
-#create node
-def vector_store_node(state: MessagesState) -> Command[Literal["supervisor"]]:
+# vs = VectorStore()
+# tools = [
+#     Tool(
+#         name="vector_store_tool",
+#         func=vs.run,
+#         description="Store data from document_processor in vector database"
+#     )
+# ]
+# # create agent
+# vector_store_agent = create_react_agent(supervisor.llm, tools=tools)
+# #create node
+# def vector_store_node(state: MessagesState) -> Command[Literal["supervisor"]]:
+#     #read the last message in the message history.
+#     logger.warning(f'state={state}')
+#     response = vector_store_agent.invoke(state)
+#     logger.warning(f'response={[response["messages"][-1].content]}')
+#     return Command(
+#         update={
+#             "messages": [
+#                 HumanMessage(content=[response["messages"][-1].content], name="vector_store")
+#             ]
+#         },
+#         goto="supervisor",
+#     )
+
+# ----------------------   create analysis node -----------------------
+# create tool
+ia = InsuranceAnalysisAgent()
+analysis_agent = create_react_agent(supervisor.llm,tools=ia.tools)
+
+
+def analysis_node(state: MessagesState) -> Command[Literal["supervisor"]]:
     #read the last message in the message history.
     logger.warning(f'state={state}')
-    result = vector_store_agent.invoke(state)
+    response = analysis_agent.invoke(state)
+    logger.warning(f'response={[response["messages"][-1].content]}')
     return Command(
         update={
             "messages": [
-                HumanMessage(content=HumanMessage(content=""" When all files are loaded in to the vector store,
-                    then perform indepth analysis on the data in the vector store.
-                    Provide information about trends, outliers, aggregations and 
-                    any thing else useful.""")
-                , name="vector_store")
+                HumanMessage(content=[response["messages"][-1].content], name="analysis")
             ]
         },
         goto="supervisor",
     )
 
+
 class CreateNode:
-    def __init__(self,name:str,llm:Any):
+    def __init__(self,name:str,llm:Any,agent:Any):
         self.name = name
         self.llm = llm
+        self.agent = agent
+        self.node = self.create_node()
 
-    def node(self,state:MessagesState) -> Command[Literal["supervisor"]]:
+
+    def create_node(self,state:MessagesState) -> Command[Literal["supervisor"]]:
         """
         Create Node
 
@@ -100,37 +121,42 @@ class CreateNode:
         return Command(
             update={
                 "messages": [
-                    HumanMessage(content=result, name=self.name),
-                
+                    HumanMessage(content="Go to analysis mode:", name=self.name),
                 ]
             },
             goto="supervisor",
         )
-    
-analysis = CreateNode(name='analysis',llm=supervisor.llm)
-
-
+        
 
 if __name__ == '__main__':
     builder = StateGraph(MessagesState)
     builder.add_node("supervisor", supervisor_node)
     builder.add_node("document_processor", document_processor_node)
-    builder.add_node("vector_store", vector_store_node)
-    builder.add_node("analysis",analysis.node)
-    
-    builder.add_edge(START, "supervisor")
-    graph = builder.compile()
+    builder.add_node("analysis",analysis_node)
 
-    for s in graph.stream({
+    builder.add_edge(START, "supervisor")
+    builder.add_edge("analysis", END)
+    graph = builder.compile()
+    
+    # Run the graph
+    graph.invoke({"messages": [
+        HumanMessage(content=f"""
+            You re a data analyst. Process csv files from 'dir_path':'{get_project_filepath()}/data/csv/'.
+            Then, analyze prcessed files looking for trends and summaries.
+        """),
+    ]})
+
+
+    # for s in graph.stream({
             
-            "messages": [
-                HumanMessage(content=f"""
-                    load_files from 'dir_path':{get_project_filepath()}/data/csv/
-                    """),
-            ]
-        },
-        # Maximum number of steps to take in the graph
-        {"recursion_limit": 100},
-        ):
-        print(s)
-        print("----")
+    #         "messages": [
+    #             HumanMessage(content=f"""
+    #                 load_files from 'dir_path':{get_project_filepath()}/data/csv/
+    #                 """),
+    #         ]
+    #     },
+    #     # Maximum number of steps to take in the graph
+    #     {"recursion_limit": 100},
+    #     ):
+    #     print(s)
+    #     print("----")
