@@ -158,7 +158,7 @@ class VectorStore:
                 "messages":"""Goto analysis node: 
                 You are a data analyst.Perform in depth analyis after retrieving the data using the analysis tool.
                 The data has three columns: [Year, Average expenditure, Percent change].
-                Use the PythonREPL tool to use pandas if that helps the analyis.
+                Use the PythonREPL tool to use pandas to find trends, outliers, anomalies, and predictions.
                 Do not make up information that isn't in the dataset.
                 """,
                 "next":"analysis",

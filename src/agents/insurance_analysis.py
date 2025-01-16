@@ -36,7 +36,7 @@ logger.add(
     f"{get_project_filepath()}/logs/analysis.log",
     rotation=time(0, 0),
     format="{time} {level} {message}",
-    level="DEBUG"
+    level="WARNING"
     )
 
 
@@ -64,7 +64,7 @@ class InsuranceAnalysisAgent:
         # Initialize agent
         self.agent = self._create_agent()
 
-        # queries
+        # helper user queries
         self.query_prepend = "You are a data analyst.Use the retreiver to access the insurance data in the vector store. If needed use the python tool to use pandas for deep analysis."
         self.queries = [
             
@@ -73,7 +73,8 @@ class InsuranceAnalysisAgent:
             "Based on this data, what future trends can we expect?",
             "Identify and highlight the predominant themes from the data",
             "What are the biggest year to year changes in the dataset?",
-            "What are the positive things to note from the dataset?"
+            "What are the positive things to note from the dataset?",
+            "What prediction can be made from the dataset"
         ]
 
     def _create_retrieval_chain(self) -> RetrievalQAWithSourcesChain:
@@ -143,13 +144,15 @@ class InsuranceAnalysisAgent:
         # Use the agent
         config = {"configurable": {"thread_id": self.thread_id}}
         messages,counter = {},0
-        for chunk in self.agent.stream({"messages":query}, config):
-            if 'agent' in chunk:
-                message = chunk['agent']['messages'][0].content
-                messages[counter] = message
-                print(f'{type(message)=}...{message=}\n\n')
+        for query_add in self.queries:
+            query = f'{query_add}::{query}'
+            for chunk in self.agent.stream({"messages":query}, config):
+                if 'agent' in chunk:
+                    message = chunk['agent']['messages'][0].content
+                    messages[counter] = message
+                    print(f'{type(message)=}...{message=}\n\n')
            
-        logger.info(f"analysis::{json.dumps(messages)}")
+        logger.warning(f"analysis::{json.dumps(messages)}")
         return messages
         
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
@@ -163,9 +166,7 @@ class InsuranceAnalysisAgent:
             Updated state
         """
         # Update state with results
-        #logger.warning(f'inside analyze insurance: {state}')
         output = self.analyze_trends(query=state)  
-        #logger.info(f'output:{output}')
     
         return {
             "messages":'FINISH',
