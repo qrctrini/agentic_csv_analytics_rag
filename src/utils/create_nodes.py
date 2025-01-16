@@ -14,6 +14,7 @@ from langchain.output_parsers import PydanticOutputParser, JsonOutputToolsParser
 from langchain.output_parsers.json import SimpleJsonOutputParser
 from langchain.prompts import PromptTemplate
 from langgraph.prebuilt import create_react_agent
+from langchain.chains.combine_documents import create_stuff_documents_chain
 
 # helpers
 from src.utils.agent_state import AgentState
@@ -50,7 +51,6 @@ class CreateNode:
             Command: Messages and next step for supervisor to make decision
 
         """
-
         logger.warning(f'{self.name} .... state:{state}')
         response = self.agent.invoke(state)
         new_message = response['messages'][self.dct[self.name]].content

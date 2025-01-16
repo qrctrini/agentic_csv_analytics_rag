@@ -11,6 +11,9 @@ from langchain_experimental.utilities import PythonREPL
 from langchain_experimental.tools import PythonREPLTool
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import create_retriever_tool
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import RetrievalQA
+import psycopg
 
 import logging
 import os
@@ -36,7 +39,7 @@ class InsuranceAnalysisAgent:
         self.vector_store.init_store()
         self.model_name = "claude-3-sonnet-20240229"
         self.llm = ChatAnthropic(model_name=self.model_name,api_key=os.getenv('ANTHROPIC_API_KEY'))
-        self.temperature = 0
+        self.temperature = 0.5
         self.memory = MemorySaver()
         self.thread_id = self._generate_thread_id()
 
@@ -80,18 +83,13 @@ class InsuranceAnalysisAgent:
         Returns:
             List of Tool objects
         """
-        retriever = self.vector_store.vector_store.as_retriever()
         tools = [
-            # Tool(
-            #     name="search_documents",
-            #     func=self._create_retrieval_chain,
-            #     description="Analyze insurance documents for trends, anomalies, "
-            # ),
-            create_retriever_tool(
-                retriever=retriever,
-                name="vector_store_retriever",
-                description="Retrieves relevant documents vector store."
+            Tool(
+                name="search_documents",
+                func=self.vector_store.similarity_search,
+                description="Analyze insurance documents for trends, anomalies, patterns"
             ),
+          
             PythonREPLTool()
         ]
         return tools
@@ -105,7 +103,7 @@ class InsuranceAnalysisAgent:
         """
         # Create the agent
         # model = ChatAnthropic(model_name=self.model_name)
-        agent_executor = create_react_agent(self.llm, self.tools, checkpointer=self.memory)
+        agent_executor = create_react_agent(self.llm, self.tools)
         return agent_executor
     
     def _generate_thread_id(self) -> str:
@@ -119,7 +117,7 @@ class InsuranceAnalysisAgent:
         """
         return str(random.randint(1000,5000))
 
-    def analyze_trends(self, query: str) -> str:
+    def analyze_trends(self) -> str:
         """
         TODO: Analyze insurance trends
 
@@ -129,24 +127,20 @@ class InsuranceAnalysisAgent:
         Returns:
             Analysis results
         """
+        query = "Analyze data using the tool provided"
         logger.info(f"Analyzing trends for query: {query}")
         # Use the agent
         config = {"configurable": {"thread_id": self.thread_id}}
         messages = []
-        for query in self.queries:
-            query = f'{self.query_prepend}.{query}'
-            logger.warning(f'query:{query}')
-            chunk = self.agent.invoke(query)
-            logger.info(f'{type(chunk)=}...{chunk=}\n\n')
-            # for chunk in self.agent.stream({"messages":query}, config):
-            #     #if 'agent' in chunk:
-            #     logger.info(f'{type(chunk)=}...{chunk=}\n\n')
-            #     # message = chunk['agent']['messages']
-            #     # messages.append(message)
-            #     # logger.info(f'{type(chunk)=}...{chunk=}\n\n')
+        for chunk in self.agent.stream({"messages":query}, config):
+            if 'agent' in chunk:
+                message = chunk['agent']['messages']
+                messages.append(message)
+                print(f'{type(chunk)=}...{chunk=}\n\n')
            
         return messages
-    
+        
+        
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
         Main agent function to be called by the supervisor
@@ -160,7 +154,7 @@ class InsuranceAnalysisAgent:
       
         # Update state with results
         logger.warning(f'inside analyze: {state}')
-        output = self.analyze_trends(query=state)  
+        output = self.analyze_trends()  
         logger.info(f'output:{output}')
     
         return {
@@ -173,5 +167,5 @@ class InsuranceAnalysisAgent:
 if __name__ == '__main__':
     ins = InsuranceAnalysisAgent()
    
-    state = ins.run(state=["you are a data analyst. Perform analysis."])
+    state = ins.run(state={"messages":"you are a data analyst. Perform in depth analysis.Highlight of trends, anomalies, make predictions for the future. "})
     logger.info(f'state={state}')
