@@ -14,18 +14,30 @@ from langchain_core.tools import create_retriever_tool
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import RetrievalQA
 import psycopg
-
+from datetime import time
 import logging
 import os
 import random
+import json
+from loguru import logger
 from dotenv import load_dotenv 
 load_dotenv()
 
-logger = logging.getLogger(__name__)
 
 # project import
 from src.agents.vector_store import VectorStore
 from src.utils.prompt import Prompt
+from src.utils.utils import get_project_filepath
+
+
+# setup loggers
+logger_native = logging.getLogger(__name__)
+logger.add(
+    f"{get_project_filepath()}/logs/analysis.log",
+    rotation=time(0, 0),
+    format="{time} {level} {message}",
+    level="DEBUG"
+    )
 
 
 class InsuranceAnalysisAgent:
@@ -117,7 +129,7 @@ class InsuranceAnalysisAgent:
         """
         return str(random.randint(1000,5000))
 
-    def analyze_trends(self) -> str:
+    def analyze_trends(self,query:str) -> str:
         """
         TODO: Analyze insurance trends
 
@@ -127,19 +139,18 @@ class InsuranceAnalysisAgent:
         Returns:
             Analysis results
         """
-        query = "Analyze data using the tool provided"
-        logger.info(f"Analyzing trends for query: {query}")
+        #logger.info(f"Analyzing trends for query: {query}")
         # Use the agent
         config = {"configurable": {"thread_id": self.thread_id}}
-        messages = []
+        messages,counter = {},0
         for chunk in self.agent.stream({"messages":query}, config):
             if 'agent' in chunk:
-                message = chunk['agent']['messages']
-                messages.append(message)
-                print(f'{type(chunk)=}...{chunk=}\n\n')
+                message = chunk['agent']['messages'][0].content
+                messages[counter] = message
+                print(f'{type(message)=}...{message=}\n\n')
            
+        logger.info(f"analysis::{json.dumps(messages)}")
         return messages
-        
         
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -151,11 +162,10 @@ class InsuranceAnalysisAgent:
         Returns:
             Updated state
         """
-      
         # Update state with results
-        logger.warning(f'inside analyze: {state}')
-        output = self.analyze_trends()  
-        logger.info(f'output:{output}')
+        #logger.warning(f'inside analyze insurance: {state}')
+        output = self.analyze_trends(query=state)  
+        #logger.info(f'output:{output}')
     
         return {
             "messages":'FINISH',
@@ -164,8 +174,8 @@ class InsuranceAnalysisAgent:
      
     
 
-if __name__ == '__main__':
-    ins = InsuranceAnalysisAgent()
+# if __name__ == '__main__':
+#     ins = InsuranceAnalysisAgent()
    
-    state = ins.run(state={"messages":"you are a data analyst. Perform in depth analysis.Highlight of trends, anomalies, make predictions for the future. "})
-    logger.info(f'state={state}')
+#     state = ins.run(state={"messages":"you are a data analyst. Perform in depth analysis.Highlight trends, anomalies, make predictions for the future"})
+#     logger.info(f'state={state}')

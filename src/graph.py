@@ -30,7 +30,6 @@ from src.utils.agent_state import AgentState
 from src.utils.prompt import Prompt
 from src.utils.create_nodes import CreateNode
 
-
     
 # ------------- create nodes ---------------------------
 supervisor = Supervisor()
@@ -80,7 +79,16 @@ def create_agent_graph():
 if __name__ == '__main__':
     graph = create_agent_graph()
     
+    query = f"""Process csv files from 'dir_path':'{get_project_filepath()}/data/csv'"""
+     # Initialize the state
+    initial_state = AgentState(
+        messages=[HumanMessage(content=query)] if query else [],
+        next="supervisor"
+    )
+
     # Run the graph
-    graph.invoke({"messages": [
-        HumanMessage(content=f"""Process csv files from 'dir_path':'{get_project_filepath()}/data/csv'""")]
-    })
+    for output in graph.stream(initial_state,{"recursion_limit": 50}):
+        if "__end__" not in output:
+            logger.info(f"Intermediate output: {output}")
+
+    logger.info("Analysis complete!")

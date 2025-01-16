@@ -155,7 +155,12 @@ class VectorStore:
 
 
             return {
-                "messages":'Goto analysis node: You are a data analyst.Perform in depth analyis using all the data using the analysis retreiver',
+                "messages":"""Goto analysis node: 
+                You are a data analyst.Perform in depth analyis after retrieving the data using the analysis tool.
+                The data has three columns: [Year, Average expenditure, Percent change].
+                Use the PythonREPL tool to use pandas if that helps the analyis.
+                Do not make up information that isn't in the dataset.
+                """,
                 "next":"analysis",
                 "documents":None,
                 "dir_path":None}
@@ -164,5 +169,5 @@ class VectorStore:
         else:
             return {
                 "messages":'Data in wrong format',
-                "next":""
+                "next":"vector_store"
             }

@@ -222,7 +222,10 @@ class DocumentProcessor(BaseModel):
             #return f"send to Vector_store: {processed_documents}. DO NOT PERFORM ANALYSIS"
             #f"send documents to vector_store as a JSON list of dictionaries with keys : 'content','metadata'.Do NOT perform any analyis whatsoever.Documents:{processed_documents}",
             return {
-                "messages":f"goto vector_store.Send the processed documents as ONLY ONE big JSON array with keys : 'content','metadata':{processed_documents}",
+                "messages":f"""goto vector_store.
+                Send the processed documents as ONLY ONE big JSON array with keys : 'content','metadata':{processed_documents}.
+                DO NOT PERFORM ANALYSIS in the vector_store_node.
+                """,
                 "next":self.next,
                 "documents":processed_documents,
                 "query":None,

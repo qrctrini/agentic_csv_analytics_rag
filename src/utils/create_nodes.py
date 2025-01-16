@@ -37,8 +37,9 @@ class CreateNode:
         self.dct = {
             "document_processor":-2,
             "vector_store":-2,
-            "analysis":-1
+            "analysis":-2
         }
+       
 
     def node(self,state: AgentState) -> Command[Literal["supervisor"]]:  
         """
