@@ -2,11 +2,9 @@ from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage, Re
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import create_react_agent
 from langchain_anthropic import ChatAnthropic
-from langgraph.graph import MessagesState, END
 from langgraph.types import Command
 from typing import Literal,Any
 from langchain_community.agent_toolkits.load_tools import load_tools
-from langchain_core.messages import AIMessage
 from langchain_core.tools import tool
 from langchain.tools import Tool
 from loguru import logger
@@ -45,13 +43,6 @@ tools = [
 document_processor_agent = create_react_agent(supervisor.llm, tools=tools)
 # create node
 def document_processor_node(state: AgentState) -> Command[Literal["supervisor"]]:  
-    parser = SimpleJsonOutputParser()
-    prompt = PromptTemplate(
-        template="{dir_path}\n{format_instructions}",
-        input_variables=["dir_path"],
-        partial_variables={"format_instructions": parser.get_format_instructions()}
-    )  
-    #chain = prompt | state
     response = document_processor_agent.invoke(state)
     tmp = response['messages'][-2].content
     logger.info(f'type={type(tmp)} response={tmp}')
@@ -116,33 +107,6 @@ def analysis_node(state: AgentState) -> Command[Literal["supervisor"]]:
     )
 
 
-class CreateNode:
-    def __init__(self,name:str,llm:Any,agent:Any):
-        self.name = name
-        self.llm = llm
-        self.agent = agent
-        self.node = self.create_node()
-
-
-    def create_node(self,state:AgentState) -> Command[Literal["supervisor"]]:
-        """
-        Create Node
-
-        Return:
-            node(Command): 
-        """
-        agent = create_react_agent(supervisor.llm, tools=tools)
-        logger.warning(f'state={state}')
-        result = agent.invoke(state)
-        return Command(
-            update={
-                "messages": [
-                    HumanMessage(content="Go to analysis mode:", name=self.name),
-                ]
-            },
-            goto="supervisor",
-        )
-        
 
 if __name__ == '__main__':
     builder = StateGraph(AgentState)
@@ -152,7 +116,6 @@ if __name__ == '__main__':
     builder.add_node("analysis",analysis_node)
 
     builder.add_edge(START, "supervisor")
-
     builder.add_edge("analysis", END)
     graph = builder.compile()
     

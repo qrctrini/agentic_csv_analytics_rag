@@ -32,8 +32,12 @@ logger.add(
     )
 
 class DocumentProcessor(BaseModel):
-    chunk_size:int = 200
-    chunk_overlap:int = 0
+    name:str = "document_processor"
+    role:str = "Document processor"
+    next:str = "vector_store"
+    task:str = "Send processed documents to the next node as a JSON list of dictionaries with keys : 'content','metadata'.Do NOT perform any analyis whatsever:"
+    chunk_size:int = 1000
+    chunk_overlap:int = 100
     text_splitter:RecursiveCharacterTextSplitter = None
     dir_path:str = f'{get_project_filepath()}/data'
     content_loaded_tracker:list = []
@@ -103,7 +107,7 @@ class DocumentProcessor(BaseModel):
             documents(list): loaded files split by textsplitter
         """
         files_to_load = get_list_of_files_in_directory(dir_path=dir_path)
-        documents, metadata = [],[]
+        documents = []
         if files_to_load:
             logger.warning(f'files to load:{files_to_load}')
             for file_path in files_to_load:
@@ -111,7 +115,6 @@ class DocumentProcessor(BaseModel):
                     # load and process files
                     file_path = f'{dir_path}/{file_path}'
                     documents += self.load_csv(file_path=file_path)
-                    
                 except Exception as e:
                     logger.error(f'DocumentProcessor Error:{e}')
         logger.info(f'{len(files_to_load)}   ....  {len(documents)}')          
@@ -189,6 +192,12 @@ class DocumentProcessor(BaseModel):
         except Exception as e:
             logger.error(f'error saving documents:{e}')
 
+    def query_llm(self, input_prompt:str=None):
+        """Simulates querying the LLM with a role-specific prompt."""
+        system=f"You are a: {self.name}. Your role: {self.role}. Your task: {self.function}."
+        prompt = ""
+        return prompt
+
     def run(self, state: str) -> Dict[str,list]:
         """
         Main agent function to be called by the supervisor
@@ -203,7 +212,6 @@ class DocumentProcessor(BaseModel):
         if state not in self.content_loaded_tracker:
             self.setup()
             documents = self.load_all_files(dir_path=state)
-            #processed_documents = self.process_and_save_documents(documents)
             processed_documents = self.process_documents(documents)
             #logger.warning(f'processed documents={processed_documents}')
             # memoize documents loaded this session
@@ -212,15 +220,23 @@ class DocumentProcessor(BaseModel):
             #processed_documents = ",  ".join(processed_documents)
             #return f"send to vector_store as a JSON object with keys : 'Year', 'Average expenditure', 'Percent change','metadata'.Do not perform any aggregations:{processed_documents}"
             #return f"send to Vector_store: {processed_documents}. DO NOT PERFORM ANALYSIS"
+            #f"send documents to vector_store as a JSON list of dictionaries with keys : 'content','metadata'.Do NOT perform any analyis whatsoever.Documents:{processed_documents}",
             return {
-                "messages":[f"send documents to vector_store as a JSON list of dictionaries with keys : 'content','metadata'.Do NOT perform any analyis whatsever:"],
-                "next":"vector_store",
+                "messages":f"goto vector_store.Send the processed documents as ONLY ONE big JSON array with keys : 'content','metadata':{processed_documents}",
+                "next":self.next,
                 "documents":processed_documents,
-                "query":None,"dir_path":None
+                "query":None,
+                "dir_path":None
                 }
         else:
             logger.warning(f"There are no documents to process")
-            return "There are no documents to process"
+            return {
+                "messages":f"goto analysis.",
+                "next":"analysis",
+                "documents":None,
+                "query":None,
+                "dir_path":None
+                }
 
 
     

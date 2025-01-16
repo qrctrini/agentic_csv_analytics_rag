@@ -10,6 +10,8 @@ from langchain_core.tools import tool
 from langchain_experimental.utilities import PythonREPL
 from langchain_experimental.tools import PythonREPLTool
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+from langchain_core.tools import create_retriever_tool
+
 import logging
 import os
 import random
@@ -47,6 +49,18 @@ class InsuranceAnalysisAgent:
         # Initialize agent
         self.agent = self._create_agent()
 
+        # queries
+        self.query_prepend = "You are a data analyst.Use the retreiver to access the insurance data in the vector store. If needed use the python tool to use pandas for deep analysis."
+        self.queries = [
+            
+            "What trends can you identify in this data?",
+            "What type of charts or graphs would best represent this data?",
+            "Based on this data, what future trends can we expect?",
+            "Identify and highlight the predominant themes from the data",
+            "What are the biggest year to year changes in the dataset?",
+            "What are the positive things to note from the dataset?"
+        ]
+
     def _create_retrieval_chain(self) -> RetrievalQAWithSourcesChain:
         """
         Create retrieval chain for document querying
@@ -66,11 +80,17 @@ class InsuranceAnalysisAgent:
         Returns:
             List of Tool objects
         """
+        retriever = self.vector_store.vector_store.as_retriever()
         tools = [
-            Tool(
-                name="search_documents",
-                func=self.vector_store.similarity_search,
-                description="Search through insurance documents"
+            # Tool(
+            #     name="search_documents",
+            #     func=self._create_retrieval_chain,
+            #     description="Analyze insurance documents for trends, anomalies, "
+            # ),
+            create_retriever_tool(
+                retriever=retriever,
+                name="vector_store_retriever",
+                description="Retrieves relevant documents vector store."
             ),
             PythonREPLTool()
         ]
@@ -113,11 +133,17 @@ class InsuranceAnalysisAgent:
         # Use the agent
         config = {"configurable": {"thread_id": self.thread_id}}
         messages = []
-        for chunk in self.agent.stream({"messages":query}, config):
-            if 'agent' in chunk:
-                message = chunk['agent']['messages']
-                messages.append(message)
-                logger.info(f'{type(chunk)=}...{chunk=}\n\n')
+        for query in self.queries:
+            query = f'{self.query_prepend}.{query}'
+            logger.warning(f'query:{query}')
+            chunk = self.agent.invoke(query)
+            logger.info(f'{type(chunk)=}...{chunk=}\n\n')
+            # for chunk in self.agent.stream({"messages":query}, config):
+            #     #if 'agent' in chunk:
+            #     logger.info(f'{type(chunk)=}...{chunk=}\n\n')
+            #     # message = chunk['agent']['messages']
+            #     # messages.append(message)
+            #     # logger.info(f'{type(chunk)=}...{chunk=}\n\n')
            
         return messages
     
@@ -131,26 +157,21 @@ class InsuranceAnalysisAgent:
         Returns:
             Updated state
         """
-        # -- Implement agent logic
-        # Extract query from state
-        #query = state.get('query')
-        # Run analysis
-        # if query is not None:
-        #     output = self.analyze_trends(query=query)       
+      
         # Update state with results
-        if state:
-            logger.warning(f'inside analyze really: {state}')
-            output = self.analyze_trends(query=state)  
-            logger.info(output)
-        
-            return f'FINISH - {output}'
-        return 'FINISH'
+        logger.warning(f'inside analyze: {state}')
+        output = self.analyze_trends(query=state)  
+        logger.info(f'output:{output}')
+    
+        return {
+            "messages":'FINISH',
+            "answer":output,
+        }
+     
     
 
-# if __name__ == '__main__':
-#     ins = InsuranceAnalysisAgent()
-#     query = 'What is a important trend in Average expenditure?'
-#     p = Prompt(query)
-#     print(f'p={p.messages}')
-#     state = ins.run(state={'query':p.messages})
-#     logger.info(f'state={state}')
+if __name__ == '__main__':
+    ins = InsuranceAnalysisAgent()
+   
+    state = ins.run(state=["you are a data analyst. Perform analysis."])
+    logger.info(f'state={state}')
