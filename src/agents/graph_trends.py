@@ -9,19 +9,24 @@ from typing import Optional
 from pydantic import Field
 from langchain_core.tools import tool
 from langchain_experimental.utilities import PythonREPL
-from langchain_experimental.tools import PythonREPLTool
+#from langchain_experimental.tools import PythonREPLTool
+from langchain.prompts import PromptTemplate
+
 from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, ToolMessage
 from langchain.memory import ConversationBufferMemory
 from langchain_experimental.tools import PythonAstREPLTool
 from langchain_core.messages import RemoveMessage, AIMessage
-import matplotlib.pyplot as plt
 from langchain_core.callbacks.manager import CallbackManagerForToolRun
 from langchain_experimental.tools.python.tool import sanitize_input
 from loguru import logger
 import os
 import random
 import pandas as pd
+import matplotlib as mpl
+mpl.use("Agg")
+import matplotlib.pyplot as plt
+
 from dotenv import load_dotenv 
 load_dotenv()
 
@@ -48,16 +53,26 @@ class PythonREPLTool(BaseTool):
         query: str,
         run_manager: Optional[CallbackManagerForToolRun] = None,
     ) -> Any:
+        
         """Use the tool."""
         if self.sanitize_input:
             query = sanitize_input(query)
         result = self.python_repl.run(query)
-        plt.savefig('/tmp/trends_output.png')
+
+        logger.warning(f'***************************************************************************')
+
+        plt.savefig('zz_graph.png')
+        plt.close()
+        plt.savefig('/tmp/zz_graph.png')
+        plt.close()
         
         # Check if the result is a matplotlib figure
         if isinstance(result, plt.Figure):
             # Save the figure to a file
-            plt.savefig('/tmp/trends_output.png')
+            result.savefig('/tmp/zz_graph.png')
+
+
+        
         return self.python_repl.run(query)
 
 
@@ -161,7 +176,7 @@ class CreateDataframeAgent:
     def create_dataframe(self, query:str):
         
         query = """
-            Query the database and retrieve data.
+            Query the vector database and retrieve data.
             The response should be in JSON format.
             There response should have three columns: ["Year","Average expenditure","Percent change"]
             The response should look as follows:
@@ -173,19 +188,21 @@ class CreateDataframeAgent:
             Query the database and retrieve data.
             Generate a  a line graph of the trendline using "Year" and "Percent change".
         """
+
         tools = [
             Tool(
                 name="search_documents",
                 func=self.vector_store.similarity_search,
-                description=query
+                description="query the database for 'Year' and 'Percent change' data ",
             ),
             PythonREPLTool()
         ]
         config = {"configurable": {"thread_id": self.thread_id}}
         agent = create_react_agent(self.llm, tools)
-        response = agent.invoke({"messages":query},config=config)
+        
+        response = agent.invoke({"messages":[query]},config=config)
         logger.warning(f'type={type(response)},....,response={response}')
-        self.find_required_output(response,AIMessage)
+        self.find_required_output(response,ToolMessage)
         
         return response
     
@@ -203,8 +220,6 @@ class CreateDataframeAgent:
                 """)
 
 
-
-    
     def query_agent(self,agent, query):
         """
         Query an agent and return the response as a string.
@@ -311,30 +326,17 @@ class CreateDataframeAgent:
             return output
         return None
     
-    def try_this(self):
-        from langchain_community.tools.sql_database.tool import (
-            InfoSQLDatabaseTool,
-            ListSQLDatabaseTool,
-            QuerySQLCheckerTool,
-            QuerySQLDatabaseTool
-        )
-        from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
-        from langchain import hub
-        toolkit = SQLDatabaseToolkit(db=self.vector_store.connection_string, llm=self.llm)
-        
-
-        prompt_template = hub.pull("langchain-ai/sql-agent-system-prompt")
-
-        system_message = prompt_template.format(dialect="PostgreSQL", top_k=200)
-        agent_executor = create_react_agent(
-            self.llm, toolkit.get_tools(), state_modifier=system_message
-        )
 
     
 
 if __name__ == '__main__':
     ins = CreateDataframeAgent()
-    query = "Get data to show a line graph displaying important trends"
-    # p = Prompt(query)
-    # print(f'p={p.messages}')
-    state = ins.run(state={'query':query,"messages":None})
+    query = """ Query the database and retrieve data.
+            Get "Year" and "Percent change" data from the vector database.
+            The intermediate response should look as follows:
+            {"data": {"columns": ["column1", "column2", ...], "data": [[value1, value2, ...], [value1, value2, ...], ...]}}
+            Use the python tools to create charts.
+            Generate and save a line charts of any trend using "Year" and "Percent change".
+            Save the graphs to "/tmp/zz_graph.png"
+            """
+    state = ins.run(state={'query':query,"messages":[]})

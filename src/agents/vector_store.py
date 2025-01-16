@@ -109,6 +109,7 @@ class VectorStore:
         similar_docs = self.vector_store.similarity_search_with_score(query=query, k=k)
         return similar_docs
 
+    
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
         Main agent function to be called by the supervisor
@@ -140,7 +141,12 @@ class VectorStore:
                     except Exception as e:
                         logger.error(f'Vector store Error:{e}')
 
-            return f'Go to analsis node: {documents_added} Documents successfully inserted into vector store'  
+            return {
+                "messages":["Perform in depth analyis using data from the vector store. Highlight trends, patterns, year over year comparisons, and other data"],
+                "next":"analysis",
+                "documents":None,
+                "dir_path":None}
+ 
                 
         else:
             return 'Documents is in the wrong format'

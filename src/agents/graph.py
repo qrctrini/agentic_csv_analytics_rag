@@ -1,4 +1,4 @@
-from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage, RemoveMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import create_react_agent
 from langchain_anthropic import ChatAnthropic
@@ -11,6 +11,11 @@ from langchain_core.tools import tool
 from langchain.tools import Tool
 from loguru import logger
 import json
+import ast
+from langchain_core.messages.base import message_to_dict, messages_to_dict
+from langchain.output_parsers import PydanticOutputParser, JsonOutputToolsParser
+from langchain.output_parsers.json import SimpleJsonOutputParser
+from langchain.prompts import PromptTemplate
 
 
 # agents
@@ -22,7 +27,9 @@ from src.agents.insurance_analysis import InsuranceAnalysisAgent
 # helpers
 from src.utils.utils import get_project_filepath
 from src.agents.supervisor import supervisor_node, Supervisor
+from src.utils.agent_state import AgentState
 supervisor = Supervisor()
+
 
 # ----------------------   create document processor node -----------------------
 # create tools
@@ -37,47 +44,56 @@ tools = [
 # create agent
 document_processor_agent = create_react_agent(supervisor.llm, tools=tools)
 # create node
-def document_processor_node(state: MessagesState) -> Command[Literal["supervisor"]]:    
-    response= document_processor_agent.invoke(state)
-    #documents = response['messages'][-2].content
-    logger.warning(f'response:{response}')
+def document_processor_node(state: AgentState) -> Command[Literal["supervisor"]]:  
+    parser = SimpleJsonOutputParser()
+    prompt = PromptTemplate(
+        template="{dir_path}\n{format_instructions}",
+        input_variables=["dir_path"],
+        partial_variables={"format_instructions": parser.get_format_instructions()}
+    )  
+    #chain = prompt | state
+    response = document_processor_agent.invoke(state)
+    tmp = response['messages'][-2].content
+    logger.info(f'type={type(tmp)} response={tmp}')
+    
     return Command(
         update={
             "messages":[
 
-                HumanMessage(content=[response["messages"][-1].content],name='document_processor')
-            ]
+                HumanMessage(content=[response["messages"][-2].content],name='document_processor')
+            ],
+            
         },
-        goto='analysis',
+        goto='supervisor',
         
     )
 
 # ----------------------   create vector store node -----------------------
-# create tool
-# vs = VectorStore()
-# tools = [
-#     Tool(
-#         name="vector_store_tool",
-#         func=vs.run,
-#         description="Store data from document_processor in vector database"
-#     )
-# ]
-# # create agent
-# vector_store_agent = create_react_agent(supervisor.llm, tools=tools)
-# #create node
-# def vector_store_node(state: MessagesState) -> Command[Literal["supervisor"]]:
-#     #read the last message in the message history.
-#     logger.warning(f'state={state}')
-#     response = vector_store_agent.invoke(state)
-#     logger.warning(f'response={[response["messages"][-1].content]}')
-#     return Command(
-#         update={
-#             "messages": [
-#                 HumanMessage(content=[response["messages"][-1].content], name="vector_store")
-#             ]
-#         },
-#         goto="supervisor",
-#     )
+#create tool
+vs = VectorStore()
+tools = [
+    Tool(
+        name="vector_store_tool",
+        func=vs.run,
+        description="Store data in vector database"
+    )
+]
+# create agent
+vector_store_agent = create_react_agent(supervisor.llm, tools=tools)
+#create node
+def vector_store_node(state: AgentState) -> Command[Literal["supervisor"]]:
+    #read the last message in the message history.
+    logger.warning(f'documents={state}')
+    response = vector_store_agent.invoke(state)
+    logger.warning(f'response={[response["messages"][-2].content]}')
+    return Command(
+        update={
+            "messages": [
+                HumanMessage(content=[response["messages"][-2].content], name="vector_store")
+            ]
+        },
+        goto="supervisor",
+    )
 
 # ----------------------   create analysis node -----------------------
 # create tool
@@ -85,7 +101,7 @@ ia = InsuranceAnalysisAgent()
 analysis_agent = create_react_agent(supervisor.llm,tools=ia.tools)
 
 
-def analysis_node(state: MessagesState) -> Command[Literal["supervisor"]]:
+def analysis_node(state: AgentState) -> Command[Literal["supervisor"]]:
     #read the last message in the message history.
     logger.warning(f'state={state}')
     response = analysis_agent.invoke(state)
@@ -108,7 +124,7 @@ class CreateNode:
         self.node = self.create_node()
 
 
-    def create_node(self,state:MessagesState) -> Command[Literal["supervisor"]]:
+    def create_node(self,state:AgentState) -> Command[Literal["supervisor"]]:
         """
         Create Node
 
@@ -129,23 +145,21 @@ class CreateNode:
         
 
 if __name__ == '__main__':
-    builder = StateGraph(MessagesState)
+    builder = StateGraph(AgentState)
     builder.add_node("supervisor", supervisor_node)
     builder.add_node("document_processor", document_processor_node)
+    builder.add_node("vector_store", vector_store_node)
     builder.add_node("analysis",analysis_node)
 
     builder.add_edge(START, "supervisor")
+
     builder.add_edge("analysis", END)
     graph = builder.compile()
     
     # Run the graph
     graph.invoke({"messages": [
-        HumanMessage(content=f"""
-            You re a data analyst. Process csv files from 'dir_path':'{get_project_filepath()}/data/csv/'.
-            Then, analyze prcessed files looking for trends and summaries.
-        """),
-    ]})
-
+        HumanMessage(content=f"""Process csv files from 'dir_path':'{get_project_filepath()}/data/csv/'""")]
+    })
 
     # for s in graph.stream({
             

@@ -19,7 +19,6 @@ import sys
 
 # ---- project imports
 from src.utils.utils import get_project_filepath, get_list_of_files_in_directory
-from src.utils.agent_state import State
 from src.agents.vector_store import VectorStore
 
 
@@ -33,8 +32,8 @@ logger.add(
     )
 
 class DocumentProcessor(BaseModel):
-    chunk_size:int = 50
-    chunk_overlap:int = 10
+    chunk_size:int = 200
+    chunk_overlap:int = 0
     text_splitter:RecursiveCharacterTextSplitter = None
     dir_path:str = f'{get_project_filepath()}/data'
     content_loaded_tracker:list = []
@@ -104,17 +103,18 @@ class DocumentProcessor(BaseModel):
             documents(list): loaded files split by textsplitter
         """
         files_to_load = get_list_of_files_in_directory(dir_path=dir_path)
-        documents= []
+        documents, metadata = [],[]
         if files_to_load:
             logger.warning(f'files to load:{files_to_load}')
             for file_path in files_to_load:
                 try:
                     # load and process files
                     file_path = f'{dir_path}/{file_path}'
-                    documents  += self.load_csv(file_path=file_path)
-                 
+                    documents += self.load_csv(file_path=file_path)
+                    
                 except Exception as e:
                     logger.error(f'DocumentProcessor Error:{e}')
+        logger.info(f'{len(files_to_load)}   ....  {len(documents)}')          
         return documents
             
     def load_df(self, df: pd.DataFrame) -> List[Document]:
@@ -156,9 +156,9 @@ class DocumentProcessor(BaseModel):
             docs = self.text_splitter.split_documents(documents)
             for doc in docs:
                 if not isinstance(doc,str):
-                    #split_documents.append({"content":doc.page_content,"metadata":doc.metadata})
-                    split_documents.append(docs)
-                    
+                    split_documents.append({"content":doc.page_content,"metadata":doc.metadata})
+                    #split_documents += docs
+        
         return split_documents
     
     def process_and_save_documents(self, documents: List[Document]) -> None:
@@ -203,16 +203,24 @@ class DocumentProcessor(BaseModel):
         if state not in self.content_loaded_tracker:
             self.setup()
             documents = self.load_all_files(dir_path=state)
-            processed_documents = self.process_and_save_documents(documents)
+            #processed_documents = self.process_and_save_documents(documents)
+            processed_documents = self.process_documents(documents)
+            #logger.warning(f'processed documents={processed_documents}')
             # memoize documents loaded this session
             self.content_loaded_tracker.append(state)
             #return {"documents": processed_documents}
             #processed_documents = ",  ".join(processed_documents)
             #return f"send to vector_store as a JSON object with keys : 'Year', 'Average expenditure', 'Percent change','metadata'.Do not perform any aggregations:{processed_documents}"
-            return f"Goto Analysis node: {processed_documents} documents processed and saved."
+            #return f"send to Vector_store: {processed_documents}. DO NOT PERFORM ANALYSIS"
+            return {
+                "messages":[f"send documents to vector_store as a JSON list of dictionaries with keys : 'content','metadata'.Do NOT perform any analyis whatsever:"],
+                "next":"vector_store",
+                "documents":processed_documents,
+                "query":None,"dir_path":None
+                }
         else:
-            logger.warning(f'Documents already processed! You are a data analyst. Go to the analyis node')
-            return "Goto analysis mode: Documents already processed! You are a data analyst"
+            logger.warning(f"There are no documents to process")
+            return "There are no documents to process"
 
 
     
