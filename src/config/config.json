@@ -1,0 +1,9 @@
+{
+    "document_processor":{
+        "chunk_length":1000,
+        "chunk_overlap":10
+    },
+    "analysis":{
+        "save_analysis_path":"/tmp/analysis.json"
+    }
+}

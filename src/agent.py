@@ -1,89 +1,97 @@
-#!/usr/bin/env python3
-
-import argparse
-import logging
-from typing import Annotated, Dict, TypedDict
-from typing_extensions import TypedDict
-
-from langchain_core.messages import BaseMessage, HumanMessage
-from langgraph.graph import END, Graph, MessageGraph
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage, RemoveMessage, BaseMessage
+from langgraph.graph import StateGraph, START, END
+from langgraph.prebuilt import create_react_agent
 from langchain_anthropic import ChatAnthropic
-from langchain.agents import AgentExecutor, create_openai_tools_agent
-from langchain_core.agents import AgentFinish
+from langgraph.graph import MessagesState, END
+from langgraph.types import Command
+from typing import Literal,Any
+from langchain_community.agent_toolkits.load_tools import load_tools
+from langchain_core.tools import tool
+from langchain.tools import Tool
+from loguru import logger
+import json
+import ast
+from langchain_core.messages.base import message_to_dict, messages_to_dict
+from langchain.output_parsers import PydanticOutputParser, JsonOutputToolsParser
+from langchain.output_parsers.json import SimpleJsonOutputParser
+from langchain.prompts import PromptTemplate
+from langgraph.prebuilt import create_react_agent
+from langchain.schema import messages_to_dict, message_to_dict
 
-from agents.document_processor import DocumentProcessor
-from agents.vector_store import VectorStore
-from agents.insurance_analysis import InsuranceAnalysisAgent
+# agents
+from src.agents.document_processor import DocumentProcessor
+from src.agents.supervisor import Supervisor
+from src.agents.vector_store import VectorStore
+from src.agents.insurance_analysis import InsuranceAnalysisAgent
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# helpers
+from src.utils.utils import get_project_filepath, save_dict_to_json_file
+from src.agents.supervisor import supervisor_node, Supervisor
+from src.utils.agent_state import AgentState
+from src.utils.prompt import Prompt
+from src.utils.create_nodes import CreateNode
 
-class AgentState(TypedDict):
-    messages: list[BaseMessage]
-    next: str
+    
+# ------------- create nodes ---------------------------
+supervisor = Supervisor()
+document_processor_node = CreateNode(
+    name="document_processor",
+    description="load and split documents",
+    llm=supervisor.llm,
+    tool_function=DocumentProcessor,
+    prompt=Prompt
+)
 
-def supervisor_function(state: AgentState) -> Dict:
+vector_store_node = CreateNode(
+    name="vector_store",
+    description="store documents in postgres database",
+    llm=supervisor.llm,
+    tool_function=VectorStore,
+    prompt=Prompt
+)
+
+analysis_node = CreateNode(
+    name="analysis",
+    description="Analyze documents in postgres database",
+    llm=supervisor.llm,
+    tool_function=InsuranceAnalysisAgent,
+    prompt=Prompt
+)
+
+def create_agent_graph():
     """
-    The supervisor function decides which agent should run next based on the current state.
-    This is where you'll implement the logic for agent coordination.
+    Create graphs from nodes
+
+    returns:
+        - Graph
     """
-    # TODO: Implement the supervisor logic
-    # Example logic:
-    # - Check if documents need processing
-    # - Check if vector store needs updating
-    # - Check if analysis is needed
-    return {"next": END}
+    builder = StateGraph(AgentState)
+    builder.add_node("supervisor", supervisor_node)
+    builder.add_node("document_processor", document_processor_node.node)
+    builder.add_node("vector_store", vector_store_node.node)
+    builder.add_node("analysis", analysis_node.node)
 
-def create_agent_graph() -> Graph:
-    """
-    Creates the agent workflow graph.
-    """
-    # Initialize agents
-    doc_processor = DocumentProcessor()
-    vector_store = VectorStore()
-    analysis_agent = InsuranceAnalysisAgent(vector_store)
+    builder.add_edge(START, "supervisor")
 
-    # Create the workflow
-    workflow = MessageGraph()
+    graph = builder.compile()
+    return graph
 
-    # Add nodes to the graph
-    # TODO: Add the actual agent nodes and their functions
 
-    # Add the supervisor node
-    workflow.add_node("supervisor", supervisor_function)
-
-    # Set the entry point
-    workflow.set_entry_point("supervisor")
-
-    # Compile the graph
-    return workflow.compile()
-
-def main():
-    parser = argparse.ArgumentParser(description='Insurance Data Analysis Pipeline')
-    parser.add_argument('--excel-path', type=str, help='Path to Excel file for processing')
-    parser.add_argument('--query', type=str, help='Analysis query to run')
-    parser.add_argument('--debug', action='store_true', help='Enable debug logging')
-
-    args = parser.parse_args()
-
-    if args.debug:
-        logging.getLogger().setLevel(logging.DEBUG)
-
-    # Create the agent graph
+if __name__ == '__main__':
     graph = create_agent_graph()
-
-    # Initialize the state
+    
+    query = f"""Process csv files from 'dir_path':'{get_project_filepath()}/data/csv'"""
+     # Initialize the state
     initial_state = AgentState(
-        messages=[HumanMessage(content=args.query)] if args.query else [],
+        messages=[HumanMessage(content=query)] if query else [],
         next="supervisor"
     )
 
     # Run the graph
-    for output in graph.stream(initial_state):
+
+    for output in graph.stream(initial_state,{"recursion_limit": 50}):
         if "__end__" not in output:
-            logger.info(f"Intermediate output: {output}")
+            logger.info(f"{type(output)}....Intermediate output: {output}")
 
+    
     logger.info("Analysis complete!")
-
-if __name__ == "__main__":
-    main()

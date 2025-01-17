@@ -19,6 +19,7 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 # helpers
 from src.utils.agent_state import AgentState
 from src.utils.prompt import Prompt
+from src.utils.utils import save_dict_to_json_file
 
 class CreateNode:
     """
@@ -56,7 +57,8 @@ class CreateNode:
         response = self.agent.invoke(state)
         new_message = response['messages'][self.dct[self.name]].content
         logger.info(f'{self.name}...type={type(new_message)} response={new_message}')
-        
+        if self.name == "analysis":
+            save_dict_to_json_file({"analysis_node_response":new_message},'/tmp/analysis_node_response')
         return Command(
             update={
                 "messages":[

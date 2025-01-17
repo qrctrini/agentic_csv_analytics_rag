@@ -27,7 +27,7 @@ load_dotenv()
 # project import
 from src.agents.vector_store import VectorStore
 from src.utils.prompt import Prompt
-from src.utils.utils import get_project_filepath
+from src.utils.utils import get_project_filepath, save_dict_to_json_file, load_config_params_for_node
 
 
 # setup loggers
@@ -39,7 +39,6 @@ logger.add(
     level="WARNING"
     )
 
-
 class InsuranceAnalysisAgent:
     def __init__(self):
         """
@@ -47,6 +46,7 @@ class InsuranceAnalysisAgent:
         Args:
             
         """
+        self.name = "analysis"
         self.vector_store = VectorStore()
         self.vector_store.init_store()
         self.model_name = "claude-3-sonnet-20240229"
@@ -54,6 +54,7 @@ class InsuranceAnalysisAgent:
         self.temperature = 0.5
         self.memory = MemorySaver()
         self.thread_id = self._generate_thread_id()
+        self.configs = load_config_params_for_node(self.name)
 
         # Initialize retrieval chain
         self.retrieval_chain = self._create_retrieval_chain()
@@ -69,12 +70,9 @@ class InsuranceAnalysisAgent:
         self.queries = [
             
             "What trends can you identify in this data?",
-            "What type of charts or graphs would best represent this data?",
-            "Based on this data, what future trends can we expect?",
-            "Identify and highlight the predominant themes from the data",
+            "Based on this data, what anomalies can be spotted?",
             "What are the biggest year to year changes in the dataset?",
-            "What are the positive things to note from the dataset?",
-            "What prediction can be made from the dataset"
+            "Make predictions based on the dataset"
         ]
 
     def _create_retrieval_chain(self) -> RetrievalQAWithSourcesChain:
@@ -151,8 +149,9 @@ class InsuranceAnalysisAgent:
                     message = chunk['agent']['messages'][0].content
                     messages[counter] = message
                     print(f'{type(message)=}...{message=}\n\n')
-           
-        logger.warning(f"analysis::{json.dumps(messages)}")
+                    counter += 1
+                    
+        save_dict_to_json_file(dct=messages,dir_path=self.configs['save_analysis_path'])
         return messages
         
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
