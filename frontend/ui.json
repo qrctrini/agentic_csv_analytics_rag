@@ -19,7 +19,8 @@
             "type": "page",
             "content": {
                 "pageMode": "compact",
-                "emptinessColor": "#e9eef1"
+                "emptinessColor": "#e9eef1",
+                "containerBackgroundColor": "#241f31"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -65,7 +66,7 @@
             "position": 1,
             "parentId": "0d05bc9f-1655-4d0b-bc9b-c2f4c71a5117",
             "handlers": {
-                "click": "increment"
+                "click": "handle_clear_vector_store"
             },
             "visible": true
         },
@@ -80,7 +81,7 @@
             "position": 0,
             "parentId": "0d05bc9f-1655-4d0b-bc9b-c2f4c71a5117",
             "handlers": {
-                "click": "decrement"
+                "click": "handle_button_rag_runner"
             },
             "visible": true
         },
@@ -178,7 +179,7 @@
             "visible": true,
             "binding": {
                 "eventType": "ss-change",
-                "stateRef": "input_folder"
+                "stateRef": "csv_folderpath"
             }
         },
         "dbqgt346j2o00aa8": {
@@ -210,7 +211,10 @@
             "position": 0,
             "parentId": "trfxqr8xip6cqoae",
             "handlers": {},
-            "visible": true
+            "visible": true,
+            "binding": {
+                "stateRef": "text_input_docs_in_vector_store"
+            }
         },
         "pkp10ih6k22xkuvs": {
             "id": "pkp10ih6k22xkuvs",
@@ -324,14 +328,14 @@
             "visible": true,
             "binding": {
                 "eventType": "ss-options-change",
-                "stateRef": "analysis_display_options"
+                "stateRef": "checkbox_analysis_display_options"
             }
         },
         "cd9bn292fehi0a3j": {
             "id": "cd9bn292fehi0a3j",
             "type": "timer",
             "content": {
-                "intervalMs": "10000"
+                "intervalMs": "5000"
             },
             "isCodeManaged": false,
             "position": 1,
@@ -340,6 +344,22 @@
                 "ss-tick": "handle_timer_display_analysis_tick"
             },
             "visible": true
+        },
+        "vq4ok174kkepgdsd": {
+            "id": "vq4ok174kkepgdsd",
+            "type": "textinput",
+            "content": {
+                "label": "Status"
+            },
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "trfxqr8xip6cqoae",
+            "handlers": {},
+            "visible": true,
+            "binding": {
+                "eventType": "ss-change",
+                "stateRef": "text_input_runner_status"
+            }
         }
     }
 }

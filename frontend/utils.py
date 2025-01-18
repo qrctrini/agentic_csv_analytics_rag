@@ -3,6 +3,10 @@ import os
 import re
 import json
 
+# local imports
+from src.agents.vector_store import VectorStore
+
+
 def get_list_of_files(path:str) -> str:
     """
     Get a numerated string of files in a folder
@@ -90,3 +94,25 @@ def clean_string(txt:str) -> str:
         string += f"\n{i}"
     logger.info(f'cleaned string:{string}')
     return string
+
+def clear_vector_store() -> str:
+    """
+    Clear all documents from vector store
+
+    Returns:
+        vector store status update
+    """
+    vs = VectorStore()
+    vs.clear_store()
+    return 'Vector store emptied'
+
+def get_vector_store_document_count() -> int:
+    """
+    Get count of documents in vector store
+
+    Returns:
+        # of docs in vector store
+    """
+    vs = VectorStore()
+    return vs.get_document_count()
+

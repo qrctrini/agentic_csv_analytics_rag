@@ -77,11 +77,11 @@ def create_agent_graph():
     return graph
 
 
-def main():
-    # get the directory path of the files
-    configs = load_config_params_for_node(node="document_processor")
-    path = f'{get_project_filepath()}/{configs["dir_path"]}'
-    query = f"""Process csv files from 'dir_path':'{path}'"""
+def ragrunner(csv_folderpath:str) -> None: 
+    """
+    Run the entire thing using his function
+    """
+    query = f"""Process csv files from 'dir_path':'{csv_folderpath}'"""
     logger.info(f'{query=}')
 
     # initialize the graph

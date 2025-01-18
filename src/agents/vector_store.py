@@ -5,11 +5,9 @@ from langchain_postgres.vectorstores import PGVector
 from loguru import logger
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores.pgvector import DistanceStrategy
-from langchain.indexes import SQLRecordManager, index
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from pydantic import BaseModel
 from datetime import time
 import ast
+from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -35,12 +33,6 @@ class VectorStore:
         self.vector_store:PGVector = None
         self.embeddings = OpenAIEmbeddings()
 
-        # -- managing upserts
-        self.namespace = f"pgvector/{self.connection_string}"
-        self.record_manager = SQLRecordManager(
-            self.namespace, db_url=self.connection_string
-        )
-
        
     def init_store(self) -> None:
         """
@@ -65,12 +57,28 @@ class VectorStore:
             logger.error(f'Error: problem writing embeddings to postgres vector store:{e}')
     
     def clear_store(self):
+        """
+        clear all documents from existing vector store
+        """
         try:
             self.init_store()
             self.vector_store.delete_collection()
             logger.info(f'Vector Store Cleared!')
         except IOError as e:
             logger.error(f'Clear vector store error:{e}')
+
+    def get_document_count(self) -> int:
+        """
+        Count documents in vector store
+
+        Returns:
+            count: # number of document in vector store
+        """
+        self.init_store()
+        with Session(self.vector_store.session_maker.bind) as session:
+            count = session.query(self.vector_store.EmbeddingStore).count()
+            logger.info(f"The number of documents in the collection is: {count}")
+        return count
         
     def add_documents(self, documents: List[Document]) -> None:
         """
@@ -85,10 +93,6 @@ class VectorStore:
             self.init_store()
         # add documents
         documents_added = self.vector_store.add_documents(documents)
-
-        # -- for upserting
-        # index(docs, record_manager, vectorstore, cleanup="incremental", source_id_key="source"))
-
         return documents_added
             
     def similarity_search(self, query: str, k: int = 500) -> List[Document]:
@@ -145,15 +149,6 @@ class VectorStore:
                         inserted_counter += len(documents)
                     except Exception as e:
                         logger.error(f'Vector store Error:{e}')
-                # with ThreadPoolExecutor as executor:
-                #     futures = []
-                #     for item in state:
-                #         futures.append(executor.submit(self.convert_item_to_document,item))
-                #     for future in as_completed(futures):
-                #         inserted_counter += 1
-                #         logger.info(f'inserted_counter={inserted_counter}')
-
-
             return {
                 "messages":"""Goto analysis node: 
                 You are a data analyst.Perform in depth analyis after retrieving the data using the analysis tool.
@@ -164,10 +159,10 @@ class VectorStore:
                 "next":"analysis",
                 "documents":None,
                 "dir_path":None}
- 
-                
         else:
             return {
                 "messages":'Data in wrong format',
                 "next":"vector_store"
             }
+
+
