@@ -31,7 +31,8 @@
             "id": "bebc5fe9-63a7-46a7-b0fa-62303555cfaf",
             "type": "header",
             "content": {
-                "text": "@{my_app.title}"
+                "text": "@{my_app.title}",
+                "accentColor": "#613583"
             },
             "isCodeManaged": false,
             "position": 0,
@@ -44,7 +45,8 @@
             "type": "section",
             "content": {
                 "title": "",
-                "containerShadow": "0px 4px 11px -12px #000000"
+                "containerShadow": "0px 4px 11px -12px #000000",
+                "containerBackgroundColor": "#9a9996"
             },
             "isCodeManaged": false,
             "position": 1,
@@ -132,32 +134,35 @@
         "9j881eph1f4s3qrm": {
             "id": "9j881eph1f4s3qrm",
             "type": "columns",
-            "parentId": "28d3885b-0fb8-4d41-97c6-978540015431",
             "content": {},
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "28d3885b-0fb8-4d41-97c6-978540015431",
+            "handlers": {},
             "visible": true
         },
         "6omph7x1zyfwxd50": {
             "id": "6omph7x1zyfwxd50",
             "type": "column",
-            "parentId": "9j881eph1f4s3qrm",
             "content": {
                 "width": "1"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 0,
+            "parentId": "9j881eph1f4s3qrm",
+            "handlers": {},
             "visible": true
         },
         "trfxqr8xip6cqoae": {
             "id": "trfxqr8xip6cqoae",
             "type": "column",
-            "parentId": "9j881eph1f4s3qrm",
             "content": {
                 "width": "1"
             },
-            "handlers": {},
+            "isCodeManaged": false,
             "position": 1,
+            "parentId": "9j881eph1f4s3qrm",
+            "handlers": {},
             "visible": true
         },
         "1ldlhdvkp5lmyw78": {
@@ -166,6 +171,7 @@
             "content": {
                 "label": "Input folder path"
             },
+            "isCodeManaged": false,
             "position": 0,
             "parentId": "6omph7x1zyfwxd50",
             "handlers": {},
@@ -182,6 +188,7 @@
                 "label": "Documents in folder",
                 "rows": "5"
             },
+            "isCodeManaged": false,
             "position": 2,
             "parentId": "28d3885b-0fb8-4d41-97c6-978540015431",
             "handlers": {
@@ -199,9 +206,139 @@
             "content": {
                 "label": "# of documents in vector store"
             },
+            "isCodeManaged": false,
             "position": 0,
             "parentId": "trfxqr8xip6cqoae",
             "handlers": {},
+            "visible": true
+        },
+        "pkp10ih6k22xkuvs": {
+            "id": "pkp10ih6k22xkuvs",
+            "type": "section",
+            "content": {
+                "title": "Section Title",
+                "containerBackgroundColor": "#9a9996"
+            },
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
+            "handlers": {},
+            "visible": true
+        },
+        "z909hdosobu7fc80": {
+            "id": "z909hdosobu7fc80",
+            "type": "tabs",
+            "content": {},
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "pkp10ih6k22xkuvs",
+            "handlers": {},
+            "visible": true
+        },
+        "kku8vfykfr524f2c": {
+            "id": "kku8vfykfr524f2c",
+            "type": "tab",
+            "content": {
+                "name": "Analysis"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "z909hdosobu7fc80",
+            "handlers": {},
+            "visible": true
+        },
+        "fxdd6qg6tkd73ytg": {
+            "id": "fxdd6qg6tkd73ytg",
+            "type": "columns",
+            "content": {},
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "kku8vfykfr524f2c",
+            "handlers": {},
+            "visible": true
+        },
+        "vkgqwbtneygazzh3": {
+            "id": "vkgqwbtneygazzh3",
+            "type": "column",
+            "content": {
+                "width": "1"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "fxdd6qg6tkd73ytg",
+            "handlers": {},
+            "visible": true
+        },
+        "txmf0r3gn9d0o48e": {
+            "id": "txmf0r3gn9d0o48e",
+            "type": "textareainput",
+            "content": {
+                "label": "Analysis",
+                "rows": "5"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "vkgqwbtneygazzh3",
+            "handlers": {},
+            "visible": true,
+            "binding": {
+                "eventType": "ss-change",
+                "stateRef": "textarea_show_analysis"
+            }
+        },
+        "fgtkn6euudjy372v": {
+            "id": "fgtkn6euudjy372v",
+            "type": "column",
+            "content": {
+                "width": "1"
+            },
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "fxdd6qg6tkd73ytg",
+            "handlers": {},
+            "visible": true
+        },
+        "zdgy91r9hasel9t7": {
+            "id": "zdgy91r9hasel9t7",
+            "type": "horizontalstack",
+            "content": {},
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "fgtkn6euudjy372v",
+            "handlers": {},
+            "visible": true
+        },
+        "81le85wyd3bxynfc": {
+            "id": "81le85wyd3bxynfc",
+            "type": "checkboxinput",
+            "content": {
+                "label": "Analysis display options",
+                "options": "{\"show_analysis\": \"Show analysis\"}"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "zdgy91r9hasel9t7",
+            "handlers": {
+                "ss-options-change": "handle_analysis_display_options"
+            },
+            "visible": true,
+            "binding": {
+                "eventType": "ss-options-change",
+                "stateRef": "analysis_display_options"
+            }
+        },
+        "cd9bn292fehi0a3j": {
+            "id": "cd9bn292fehi0a3j",
+            "type": "timer",
+            "content": {
+                "intervalMs": "10000"
+            },
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "kku8vfykfr524f2c",
+            "handlers": {
+                "ss-tick": "handle_timer_display_analysis_tick"
+            },
             "visible": true
         }
     }

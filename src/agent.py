@@ -25,7 +25,7 @@ from src.agents.vector_store import VectorStore
 from src.agents.insurance_analysis import InsuranceAnalysisAgent
 
 # helpers
-from src.utils.utils import get_project_filepath, save_dict_to_json_file
+from src.utils.utils import get_project_filepath, save_dict_to_json_file, load_config_params_for_node
 from src.agents.supervisor import supervisor_node, Supervisor
 from src.utils.agent_state import AgentState
 from src.utils.prompt import Prompt
@@ -77,21 +77,25 @@ def create_agent_graph():
     return graph
 
 
-if __name__ == '__main__':
+def main():
+    # get the directory path of the files
+    configs = load_config_params_for_node(node="document_processor")
+    path = f'{get_project_filepath()}/{configs["dir_path"]}'
+    query = f"""Process csv files from 'dir_path':'{path}'"""
+    logger.info(f'{query=}')
+
+    # initialize the graph
     graph = create_agent_graph()
-    
-    query = f"""Process csv files from 'dir_path':'{get_project_filepath()}/data/csv'"""
-     # Initialize the state
+    # Initialize the state
     initial_state = AgentState(
         messages=[HumanMessage(content=query)] if query else [],
         next="supervisor"
     )
 
     # Run the graph
-
     for output in graph.stream(initial_state,{"recursion_limit": 50}):
         if "__end__" not in output:
             logger.info(f"{type(output)}....Intermediate output: {output}")
 
-    
-    logger.info("Analysis complete!")
+    status_update = "Analysis complete!"
+    logger.info(f'{status_update=}')

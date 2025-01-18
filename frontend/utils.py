@@ -17,10 +17,10 @@ def get_list_of_files(path:str) -> str:
     files = ""
     try:
         # Get the list of all files in a directory
-        files = os.listdir(path)
+        dirfiles = os.listdir(path)
         # add the files to list
         csvs = ""
-        for idx,file in enumerate(files):
+        for idx,file in enumerate(dirfiles):
             idx += 1
             # Check if item is a file, not a directory
             if not os.path.isdir(os.path.join(path, file)):
@@ -29,15 +29,14 @@ def get_list_of_files(path:str) -> str:
         logger.error(f'file not found')
         files = f"Sorry there was an error finding files at path: {csvs} \n Maybe double check the path?"
 
-    #csvs = "; ".join(csvs)
-    print(f"""
+    logger.info(f"""
             csvs
     ----------------------
     {files}
     """)
     return files
 
-def load_json_file(filepath:str='/tmp/analysis_node_response.json') -> dict:
+def load_json_filedata(filepath:str='/tmp/analysis_node_response.json') -> dict:
     """
     Load json file from filepath and convert contents to dct
     Args:
@@ -56,7 +55,7 @@ def load_json_file(filepath:str='/tmp/analysis_node_response.json') -> dict:
     return None
 
 
-def from_str_to_dict(txt:str) -> str:
+def from_agent_message_string_to_human_readable_string(txt:str) -> str:
     """
     Clean dict of strings for human readable output
     Args:
@@ -71,10 +70,10 @@ def from_str_to_dict(txt:str) -> str:
         match = f'(?<=\"{start}\": ).*(?=\"{end}\": )'
         print(f'match={match}')
         pattern = re.compile(match)
-        match = re.search(match,txt)
+        match = re.search(pattern,txt)
         dct[i] = clean_string(match.group())
         break
-    return dct
+    return dct[i]
 
 def clean_string(txt:str) -> str:
     """
@@ -84,8 +83,10 @@ def clean_string(txt:str) -> str:
     Returns:
         txt: cleaned string of output fit for human consumption
     """
-    txt=txt.replace('"',"")
-    txt=txt.split('\\n\\n')
-    
-    print(txt)
-    return txt
+    logger.warning(f'text before clean:{txt}')
+    txt=txt.replace('"',"").split('\\n\\n')
+    string = ""
+    for i in txt:
+        string += f"\n{i}"
+    logger.info(f'cleaned string:{string}')
+    return string
