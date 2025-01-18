@@ -142,18 +142,6 @@
             "handlers": {},
             "visible": true
         },
-        "6omph7x1zyfwxd50": {
-            "id": "6omph7x1zyfwxd50",
-            "type": "column",
-            "content": {
-                "width": "1"
-            },
-            "isCodeManaged": false,
-            "position": 0,
-            "parentId": "9j881eph1f4s3qrm",
-            "handlers": {},
-            "visible": true
-        },
         "trfxqr8xip6cqoae": {
             "id": "trfxqr8xip6cqoae",
             "type": "column",
@@ -161,128 +149,60 @@
                 "width": "1"
             },
             "isCodeManaged": false,
-            "position": 1,
+            "position": 0,
             "parentId": "9j881eph1f4s3qrm",
             "handlers": {},
             "visible": true
         },
-        "1ldlhdvkp5lmyw78": {
-            "id": "1ldlhdvkp5lmyw78",
-            "type": "textinput",
-            "content": {
-                "label": "Input folder path"
-            },
-            "isCodeManaged": false,
-            "position": 0,
-            "parentId": "6omph7x1zyfwxd50",
-            "handlers": {},
-            "visible": true,
-            "binding": {
-                "eventType": "ss-change",
-                "stateRef": "csv_folderpath"
-            }
-        },
-        "dbqgt346j2o00aa8": {
-            "id": "dbqgt346j2o00aa8",
-            "type": "textareainput",
-            "content": {
-                "label": "Documents in folder",
-                "rows": "5"
-            },
-            "isCodeManaged": false,
-            "position": 2,
-            "parentId": "28d3885b-0fb8-4d41-97c6-978540015431",
-            "handlers": {
-                "ss-change-finish": "handle_input_folder"
-            },
-            "visible": true,
-            "binding": {
-                "eventType": "ss-change",
-                "stateRef": "textarea_list_csvs"
-            }
-        },
-        "5xwqsv2zry02nbx8": {
-            "id": "5xwqsv2zry02nbx8",
-            "type": "textinput",
-            "content": {
-                "label": "# of documents in vector store"
-            },
-            "isCodeManaged": false,
+        "551l2p32j3bdgkvd": {
+            "id": "551l2p32j3bdgkvd",
+            "type": "tabs",
+            "content": {},
             "position": 0,
             "parentId": "trfxqr8xip6cqoae",
             "handlers": {},
-            "visible": true,
-            "binding": {
-                "stateRef": "text_input_docs_in_vector_store"
-            }
-        },
-        "pkp10ih6k22xkuvs": {
-            "id": "pkp10ih6k22xkuvs",
-            "type": "section",
-            "content": {
-                "title": "Section Title",
-                "containerBackgroundColor": "#9a9996"
-            },
-            "isCodeManaged": false,
-            "position": 2,
-            "parentId": "c0f99a9e-5004-4e75-a6c6-36f17490b134",
-            "handlers": {},
             "visible": true
         },
-        "z909hdosobu7fc80": {
-            "id": "z909hdosobu7fc80",
-            "type": "tabs",
-            "content": {},
-            "isCodeManaged": false,
-            "position": 0,
-            "parentId": "pkp10ih6k22xkuvs",
-            "handlers": {},
-            "visible": true
-        },
-        "kku8vfykfr524f2c": {
-            "id": "kku8vfykfr524f2c",
+        "zjeoc4c6sk2r21qt": {
+            "id": "zjeoc4c6sk2r21qt",
             "type": "tab",
             "content": {
                 "name": "Analysis"
             },
-            "isCodeManaged": false,
             "position": 0,
-            "parentId": "z909hdosobu7fc80",
+            "parentId": "551l2p32j3bdgkvd",
             "handlers": {},
             "visible": true
         },
-        "fxdd6qg6tkd73ytg": {
-            "id": "fxdd6qg6tkd73ytg",
+        "gft7wf7nhzphaqxc": {
+            "id": "gft7wf7nhzphaqxc",
             "type": "columns",
             "content": {},
-            "isCodeManaged": false,
             "position": 0,
-            "parentId": "kku8vfykfr524f2c",
+            "parentId": "zjeoc4c6sk2r21qt",
             "handlers": {},
             "visible": true
         },
-        "vkgqwbtneygazzh3": {
-            "id": "vkgqwbtneygazzh3",
+        "sny0i8m13lz9q3q2": {
+            "id": "sny0i8m13lz9q3q2",
             "type": "column",
             "content": {
                 "width": "1"
             },
-            "isCodeManaged": false,
             "position": 0,
-            "parentId": "fxdd6qg6tkd73ytg",
+            "parentId": "gft7wf7nhzphaqxc",
             "handlers": {},
             "visible": true
         },
-        "txmf0r3gn9d0o48e": {
-            "id": "txmf0r3gn9d0o48e",
+        "ytto88hfao70cpvf": {
+            "id": "ytto88hfao70cpvf",
             "type": "textareainput",
             "content": {
                 "label": "Analysis",
                 "rows": "5"
             },
-            "isCodeManaged": false,
             "position": 0,
-            "parentId": "vkgqwbtneygazzh3",
+            "parentId": "sny0i8m13lz9q3q2",
             "handlers": {},
             "visible": true,
             "binding": {
@@ -290,38 +210,35 @@
                 "stateRef": "textarea_show_analysis"
             }
         },
-        "fgtkn6euudjy372v": {
-            "id": "fgtkn6euudjy372v",
+        "kvof4p3v9xlsi6nl": {
+            "id": "kvof4p3v9xlsi6nl",
             "type": "column",
             "content": {
                 "width": "1"
             },
-            "isCodeManaged": false,
             "position": 1,
-            "parentId": "fxdd6qg6tkd73ytg",
+            "parentId": "gft7wf7nhzphaqxc",
             "handlers": {},
             "visible": true
         },
-        "zdgy91r9hasel9t7": {
-            "id": "zdgy91r9hasel9t7",
+        "gm4dz5brevqxr6y5": {
+            "id": "gm4dz5brevqxr6y5",
             "type": "horizontalstack",
             "content": {},
-            "isCodeManaged": false,
             "position": 0,
-            "parentId": "fgtkn6euudjy372v",
+            "parentId": "kvof4p3v9xlsi6nl",
             "handlers": {},
             "visible": true
         },
-        "81le85wyd3bxynfc": {
-            "id": "81le85wyd3bxynfc",
+        "crs0l17dmmmaga9r": {
+            "id": "crs0l17dmmmaga9r",
             "type": "checkboxinput",
             "content": {
                 "label": "Analysis display options",
                 "options": "{\"show_analysis\": \"Show analysis\"}"
             },
-            "isCodeManaged": false,
             "position": 0,
-            "parentId": "zdgy91r9hasel9t7",
+            "parentId": "gm4dz5brevqxr6y5",
             "handlers": {
                 "ss-options-change": "handle_analysis_display_options"
             },
@@ -331,29 +248,169 @@
                 "stateRef": "checkbox_analysis_display_options"
             }
         },
-        "cd9bn292fehi0a3j": {
-            "id": "cd9bn292fehi0a3j",
+        "mw5vi4jybgn50y5k": {
+            "id": "mw5vi4jybgn50y5k",
             "type": "timer",
             "content": {
                 "intervalMs": "5000"
             },
-            "isCodeManaged": false,
             "position": 1,
-            "parentId": "kku8vfykfr524f2c",
+            "parentId": "zjeoc4c6sk2r21qt",
             "handlers": {
                 "ss-tick": "handle_timer_display_analysis_tick"
             },
             "visible": true
         },
-        "vq4ok174kkepgdsd": {
-            "id": "vq4ok174kkepgdsd",
+        "ff24b4xkt0wpi73v": {
+            "id": "ff24b4xkt0wpi73v",
+            "type": "tab",
+            "parentId": "551l2p32j3bdgkvd",
+            "content": {
+                "name": "Folder"
+            },
+            "handlers": {},
+            "position": 1,
+            "visible": true
+        },
+        "s55g8rlt5nh87oal": {
+            "id": "s55g8rlt5nh87oal",
+            "type": "section",
+            "parentId": "ff24b4xkt0wpi73v",
+            "content": {
+                "title": "Section Title"
+            },
+            "handlers": {},
+            "position": 0,
+            "visible": true
+        },
+        "gckbcl4l0s510fja": {
+            "id": "gckbcl4l0s510fja",
+            "type": "columns",
+            "parentId": "s55g8rlt5nh87oal",
+            "content": {},
+            "handlers": {},
+            "position": 0,
+            "visible": true
+        },
+        "c6ixxc0rgn8s9v12": {
+            "id": "c6ixxc0rgn8s9v12",
+            "type": "column",
+            "parentId": "gckbcl4l0s510fja",
+            "content": {
+                "width": "1"
+            },
+            "handlers": {},
+            "position": 0,
+            "visible": true
+        },
+        "35elsmt195c7r0vz": {
+            "id": "35elsmt195c7r0vz",
+            "type": "textinput",
+            "content": {
+                "label": "Input folder path"
+            },
+            "position": 0,
+            "parentId": "c6ixxc0rgn8s9v12",
+            "handlers": {},
+            "visible": true,
+            "binding": {
+                "eventType": "ss-change",
+                "stateRef": "csv_folderpath"
+            }
+        },
+        "xug1afc1ketcb8se": {
+            "id": "xug1afc1ketcb8se",
+            "type": "column",
+            "parentId": "gckbcl4l0s510fja",
+            "content": {
+                "width": "1"
+            },
+            "handlers": {},
+            "position": 1,
+            "visible": true
+        },
+        "1cn9zk6q22qg4ryq": {
+            "id": "1cn9zk6q22qg4ryq",
+            "type": "textareainput",
+            "content": {
+                "label": "Documents in folder",
+                "rows": "5"
+            },
+            "position": 0,
+            "parentId": "xug1afc1ketcb8se",
+            "handlers": {
+                "ss-change-finish": "handle_input_folder"
+            },
+            "visible": true,
+            "binding": {
+                "eventType": "ss-change",
+                "stateRef": "textarea_list_csvs"
+            }
+        },
+        "bi6v3khqgo9y0g3u": {
+            "id": "bi6v3khqgo9y0g3u",
+            "type": "tab",
+            "parentId": "551l2p32j3bdgkvd",
+            "content": {
+                "name": "Status"
+            },
+            "handlers": {},
+            "position": 2,
+            "visible": true
+        },
+        "60aw8kulqyfqyaum": {
+            "id": "60aw8kulqyfqyaum",
+            "type": "columns",
+            "parentId": "bi6v3khqgo9y0g3u",
+            "content": {},
+            "handlers": {},
+            "position": 0,
+            "visible": true
+        },
+        "45eaq4q68sl8bgj3": {
+            "id": "45eaq4q68sl8bgj3",
+            "type": "column",
+            "parentId": "60aw8kulqyfqyaum",
+            "content": {
+                "width": "1"
+            },
+            "handlers": {},
+            "position": 0,
+            "visible": true
+        },
+        "997gns4jsfnewrnt": {
+            "id": "997gns4jsfnewrnt",
+            "type": "textinput",
+            "content": {
+                "label": "# of documents in vector store"
+            },
+            "position": 0,
+            "parentId": "45eaq4q68sl8bgj3",
+            "handlers": {},
+            "visible": true,
+            "binding": {
+                "stateRef": "text_input_docs_in_vector_store"
+            }
+        },
+        "3m01a41q5g0jomzs": {
+            "id": "3m01a41q5g0jomzs",
+            "type": "column",
+            "parentId": "60aw8kulqyfqyaum",
+            "content": {
+                "width": "1"
+            },
+            "handlers": {},
+            "position": 1,
+            "visible": true
+        },
+        "ikpxmq84vj5fuxe0": {
+            "id": "ikpxmq84vj5fuxe0",
             "type": "textinput",
             "content": {
                 "label": "Status"
             },
-            "isCodeManaged": false,
-            "position": 1,
-            "parentId": "trfxqr8xip6cqoae",
+            "position": 0,
+            "parentId": "3m01a41q5g0jomzs",
             "handlers": {},
             "visible": true,
             "binding": {

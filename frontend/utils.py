@@ -93,6 +93,7 @@ def clean_string(txt:str) -> str:
     for i in txt:
         string += f"\n{i}"
     logger.info(f'cleaned string:{string}')
+    string=string.replace('\n',"")
     return string
 
 def clear_vector_store() -> str:
