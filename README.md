@@ -15,9 +15,11 @@ pip install langchain langchain-core langchain-community langchain-anthropic lan
 
 2. API Keys & Services: 
 Create .env file and place it in the root of your folder with these keys:
+```
 ANTHROPIC_API_KEY=<Anthropic API key (for Claude)>
-NEON_CONNECTION_STRING=<connection string for neon.tech postgress accoung account (free tier works). You can also use a postgres connection strin>
+NEON_CONNECTION_STRING=<connection string for neon.tech postgress accoung account (free tier works). You can also use a postgres connection string if you have postgres installed.>
 OPENAI_API_KEY=<Open AI key>
+```
 
 3. How to run
 - Install poetry 
