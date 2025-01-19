@@ -233,8 +233,8 @@ class DocumentProcessor(BaseModel):
         else:
             logger.warning(f"There are no documents to process")
             return {
-                "messages":f"goto analysis.",
-                "next":"analysis",
+                "messages":f"goto vector store.",
+                "next":"vector_store",
                 "documents":None,
                 "query":None,
                 "dir_path":None

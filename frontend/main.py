@@ -55,6 +55,7 @@ def handle_button_rag_runner(state):
     try:
         if 'running' not in state['text_input_runner_status'] :
             csv_folderpath = state['csv_folderpath']
+            user_query = state['text_input_query']
             bullet_list_of_files = get_list_of_files(path=csv_folderpath)
             if 'Sorry there was an error' not in bullet_list_of_files:
                 start = datetime.now()
@@ -63,7 +64,7 @@ def handle_button_rag_runner(state):
                 state['text_input_runner_status'] = f"Started running at {start.__str__()}"
                 logger.warning(f'AGENTIC RAG STARTED')
                 # start the rag
-                ragrunner(csv_folderpath=csv_folderpath)
+                ragrunner(csv_folderpath=csv_folderpath,query=user_query)
                 end = datetime.now()
                 timetaken = round((end - start).total_seconds()/60,1)
                 # set status updated
@@ -74,6 +75,36 @@ def handle_button_rag_runner(state):
             logger.warning(f'CURRENTLY RUNNING')
     except Exception as e:
         logger.error(f'error:{e}')
+
+def handle_button_run_query(state):
+    logger.info(f'*************** inside run query only ***********************')
+    try: 
+        # debounce button 
+        if 'running' not in state['text_input_runner_status'].lower() :
+            user_query = state['text_input_query']
+            documents_in_vector_store = state['text_input_docs_in_vector_store']
+            if documents_in_vector_store > 0:
+                start = datetime.now()
+                # set status update
+                state["SHOULD_SHOW_ANALYSIS"] = False
+                state['text_input_runner_status'] = f"Started running at {start.__str__()}"
+                logger.warning(f'AGENTIC RAG STARTED')
+                # start the rag
+                ragrunner(csv_folderpath=None,query=user_query)
+                end = datetime.now()
+                timetaken = round((end - start).total_seconds()/60,1)
+                # set status updated
+                state['text_input_runner_status'] = f"Finished last run at {end.__str__()}.\n Time taken(mins): {timetaken}"
+                state["checkbox_analysis_display_options"] = ['show_analysis']
+                state["SHOULD_SHOW_ANALYSIS"] = True
+            else:
+                logger.warning(f'Sorry cannot run query until there are documents in the vector store!')
+                state['text_input_runner_status'] = f'Sorry there are no documents in the vector store so cannot run "query only". \nUse the Run RAG button to load documents and run the query after.'
+        else:
+            logger.warning(f'CURRENTLY RUNNING')
+    except Exception as e:
+        logger.error(f'error:{e}')
+
 
 def handle_number_input_chunk_size(state,payload):
     logger.info(f'{type(payload)}...{payload}')
@@ -88,6 +119,8 @@ def handle_number_input_chunk_overlap(state,payload):
     size = state["number_input_chunk_size"]
     overlap = state["number_input_chunk_overlap"]
     update_config_file_with_chunk_size_chunk_overlap(chunk_size=size,chunk_overlap=overlap)
+
+
 
 # -------------------------- end handlers ---------------------
 # Initialise the state
@@ -104,7 +137,8 @@ initial_state = ss.init_state({
     "SHOULD_SHOW_ANALYSIS":False,
     "text_input_runner_status":"Ready!",
     "number_input_chunk_size":1000,
-    "number_input_chunk_overlap":10
-    #"text_input_docs_in_vector_store":get_vector_store_document_count()
+    "number_input_chunk_overlap":10,
+    "text_input_query":"Perform in-depth analysis on the data in the vector store collection",
+    "text_input_docs_in_vector_store":get_vector_store_document_count()
 })
 

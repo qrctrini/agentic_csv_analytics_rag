@@ -109,12 +109,12 @@ def clean_string(txt:str) -> str:
         txt: cleaned string of output fit for human consumption
     """
     logger.warning(f'text before clean:{txt}')
-    txt = txt.replace('Let me know if you need any other analysis on patterns in this data.',"")
+    if isinstance(txt,str):
+        txt = txt.replace('Let me know if you need any other analysis on patterns in this data.',"")
     # txt=txt.replace('"',"").split('\\n\\n')
     # string = ""
     # for i in txt:
-    #     if not i.__contains__("Let me know"):
-    #         string += f"\n{i}"
+    #     string += f"\n{i}"
     # logger.info(f'cleaned string:{string}')
     # string=string.replace('\n',"")
     return txt

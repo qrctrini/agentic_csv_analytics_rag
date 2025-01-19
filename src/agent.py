@@ -77,11 +77,16 @@ def create_agent_graph():
     return graph
 
 
-def ragrunner(csv_folderpath:str) -> None: 
+def ragrunner(csv_folderpath:str=None,query:str=None) -> None: 
     """
     Run the entire thing using his function
     """
-    query = f"""Process csv files from 'dir_path':'{csv_folderpath}'"""
+    #query = f"""Process csv files from 'dir_path':'{csv_folderpath}'"""
+    if csv_folderpath is not None:
+        analysis_prepend = f"1) Process csv files from 'dir_path':'{csv_folderpath}'. 2) Goto vector_store: Send the processed documents to vector_store as ONLY ONE big JSON array with keys : 'content','metadata' 3) Go to vector_store to save documents first. Then Use the analysis node to answer this question"
+    else:
+        analysis_prepend = f"Use the analysis node to answer this question:"
+    query = f"{analysis_prepend}: {query}"
     logger.info(f'{query=}')
 
     # initialize the graph
@@ -99,3 +104,9 @@ def ragrunner(csv_folderpath:str) -> None:
 
     status_update = "Analysis complete!"
     logger.info(f'{status_update=}')
+
+if __name__ == "__main__":
+    ragrunner(
+        csv_folderpath=f"{get_project_filepath()}/data/csv",
+        query="What's the trend in auto insurance costs over the last 3 years?"
+        )

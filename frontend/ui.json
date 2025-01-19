@@ -162,8 +162,8 @@
                 "primaryTextColor": "#ffffff"
             },
             "isCodeManaged": false,
-            "position": 0,
-            "parentId": "trfxqr8xip6cqoae",
+            "position": 3,
+            "parentId": "0d05bc9f-1655-4d0b-bc9b-c2f4c71a5117",
             "handlers": {},
             "visible": true
         },
@@ -494,6 +494,36 @@
             "binding": {
                 "eventType": "ss-number-change",
                 "stateRef": "number_input_chunk_overlap"
+            }
+        },
+        "x0ooco2c9f3hofoq": {
+            "id": "x0ooco2c9f3hofoq",
+            "type": "button",
+            "content": {
+                "text": "Run query only"
+            },
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "0d05bc9f-1655-4d0b-bc9b-c2f4c71a5117",
+            "handlers": {
+                "ss-click": "handle_button_run_query"
+            },
+            "visible": true
+        },
+        "xn8xpu338wb5bxm3": {
+            "id": "xn8xpu338wb5bxm3",
+            "type": "textinput",
+            "content": {
+                "label": "Query"
+            },
+            "isCodeManaged": false,
+            "position": 2,
+            "parentId": "c6ixxc0rgn8s9v12",
+            "handlers": {},
+            "visible": true,
+            "binding": {
+                "eventType": "ss-change",
+                "stateRef": "text_input_query"
             }
         }
     }

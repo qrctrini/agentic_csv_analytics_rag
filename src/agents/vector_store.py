@@ -77,7 +77,6 @@ class VectorStore:
         self.init_store()
         with Session(self.vector_store.session_maker.bind) as session:
             count = session.query(self.vector_store.EmbeddingStore).count()
-            logger.info(f"The number of documents in the collection is: {count}")
         return count
         
     def add_documents(self, documents: List[Document]) -> None:

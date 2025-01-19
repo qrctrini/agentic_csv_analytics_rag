@@ -69,10 +69,10 @@ class InsuranceAnalysisAgent:
         self.query_prepend = "You are a data analyst.Use the retreiver to access the insurance data in the vector store. If needed use the python tool to use pandas for deep analysis."
         self.queries = [
             
-            "What trends can you identify in this data?",
-            "Based on this data, what anomalies can be spotted?",
-            "What are the biggest year to year changes in the dataset?",
-            "Make predictions based on the dataset"
+            "What's the trend in auto insurance costs over the last 3 years?",
+            "Compare insurance costs between different regions",
+            "What factors most influence insurance costs?",
+            "Generate a summary of key findings from the data"
         ]
 
     def _create_retrieval_chain(self) -> RetrievalQAWithSourcesChain:
@@ -142,14 +142,21 @@ class InsuranceAnalysisAgent:
         # Use the agent
         config = {"configurable": {"thread_id": self.thread_id}}
         messages,counter = {},0
-        for query_add in self.queries:
-            query = f'{query_add}::{query}'
-            for chunk in self.agent.stream({"messages":query}, config):
-                if 'agent' in chunk:
-                    message = chunk['agent']['messages'][0].content
-                    messages[counter] = message
-                    print(f'{type(message)=}...{message=}\n\n')
-                    counter += 1
+
+        # for query_add in self.queries:
+        #     query = f'{query_add}::{query}'
+        #     for chunk in self.agent.stream({"messages":query}, config):
+        #         if 'agent' in chunk:
+        #             message = chunk['agent']['messages'][0].content
+        #             messages[counter] = message
+        #             print(f'{type(message)=}...{message=}\n\n')
+        #             counter += 1
+        for chunk in self.agent.stream({"messages":query}, config):
+            if 'agent' in chunk:
+                message = chunk['agent']['messages'][0].content
+                messages[counter] = message
+                print(f'{type(message)=}...{message=}\n\n')
+                counter += 1
                     
         savepath = f'{get_project_filepath()}/data/output/analysis_node_output.json'
         save_dict_to_json_file(dct=messages,dir_path=savepath)
