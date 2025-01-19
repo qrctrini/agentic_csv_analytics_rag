@@ -18,7 +18,7 @@ import sys
 
 
 # ---- project imports
-from src.utils.utils import get_project_filepath, get_list_of_files_in_directory
+from src.utils.utils import get_project_filepath, get_list_of_files_in_directory, load_config_params_for_node
 from src.agents.vector_store import VectorStore
 
 
@@ -36,8 +36,7 @@ class DocumentProcessor(BaseModel):
     role:str = "Document processor"
     next:str = "vector_store"
     task:str = "Send processed documents to the next node as a JSON list of dictionaries with keys : 'content','metadata'.Do NOT perform any analyis whatsever:"
-    chunk_size:int = 1000
-    chunk_overlap:int = 100
+    configs:dict = load_config_params_for_node(node="document_processor")
     text_splitter:RecursiveCharacterTextSplitter = None
     dir_path:str = f'{get_project_filepath()}/data'
     content_loaded_tracker:list = []
@@ -51,8 +50,8 @@ class DocumentProcessor(BaseModel):
         - Initialize the text splitter using the current input variables
         """
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=self.chunk_size,
-            chunk_overlap=self.chunk_overlap
+            chunk_size=self.configs.get("chunk_size"),
+            chunk_overlap=self.configs.get("chunk_overlap")
         )
        
     def get_filenames_from_folder(self,dir_path:str) -> list[str]: 
@@ -240,6 +239,3 @@ class DocumentProcessor(BaseModel):
                 "query":None,
                 "dir_path":None
                 }
-
-
-    

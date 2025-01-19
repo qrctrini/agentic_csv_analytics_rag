@@ -74,7 +74,7 @@
             "id": "51d1554e-1b88-461c-9353-1419cba0053a",
             "type": "button",
             "content": {
-                "text": "Run graph",
+                "text": "Run RAG",
                 "icon": "arrow-down"
             },
             "isCodeManaged": false,
@@ -278,10 +278,10 @@
             "id": "ff24b4xkt0wpi73v",
             "type": "tab",
             "content": {
-                "name": "Folder"
+                "name": "Parameters"
             },
             "isCodeManaged": false,
-            "position": 1,
+            "position": 2,
             "parentId": "551l2p32j3bdgkvd",
             "handlers": {},
             "visible": true
@@ -374,7 +374,7 @@
                 "name": "Status"
             },
             "isCodeManaged": false,
-            "position": 2,
+            "position": 1,
             "parentId": "551l2p32j3bdgkvd",
             "handlers": {},
             "visible": true
@@ -442,6 +442,58 @@
             "binding": {
                 "eventType": "ss-change",
                 "stateRef": "text_input_runner_status"
+            }
+        },
+        "oazm2djotuk0ud5s": {
+            "id": "oazm2djotuk0ud5s",
+            "type": "numberinput",
+            "content": {
+                "label": "Chunk size",
+                "minValue": "10",
+                "maxValue": "1000",
+                "valueStep": "10"
+            },
+            "isCodeManaged": false,
+            "position": 0,
+            "parentId": "6bpq168xb9kptrhp",
+            "handlers": {
+                "ss-number-change-finish": "handle_number_input_chunk_size"
+            },
+            "visible": true,
+            "binding": {
+                "eventType": "ss-number-change",
+                "stateRef": "number_input_chunk_size"
+            }
+        },
+        "6bpq168xb9kptrhp": {
+            "id": "6bpq168xb9kptrhp",
+            "type": "horizontalstack",
+            "content": {},
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "c6ixxc0rgn8s9v12",
+            "handlers": {},
+            "visible": true
+        },
+        "cu35dnpve33yjh88": {
+            "id": "cu35dnpve33yjh88",
+            "type": "numberinput",
+            "content": {
+                "label": "Chunk overlap",
+                "minValue": "5",
+                "maxValue": "500",
+                "valueStep": "5"
+            },
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "6bpq168xb9kptrhp",
+            "handlers": {
+                "ss-number-change-finish": "handle_number_input_chunk_overlap"
+            },
+            "visible": true,
+            "binding": {
+                "eventType": "ss-number-change",
+                "stateRef": "number_input_chunk_overlap"
             }
         }
     }

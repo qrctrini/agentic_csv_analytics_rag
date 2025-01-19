@@ -9,7 +9,9 @@ from frontend.utils import (
     load_json_filedata, 
     from_agent_message_string_to_human_readable_string,
     get_vector_store_document_count,
-    clear_vector_store
+    clear_vector_store,
+    update_config_file_with_chunk_size_chunk_overlap
+
 )
 from src.agent import ragrunner
 
@@ -69,6 +71,19 @@ def handle_button_rag_runner(state):
     except Exception as e:
         logger.error(f'error:{e}')
 
+def handle_number_input_chunk_size(state,payload):
+    logger.info(f'{type(payload)}...{payload}')
+    state["number_input_chunk_size"]=int(payload)
+    size = state["number_input_chunk_size"]
+    overlap = state["number_input_chunk_overlap"]
+    update_config_file_with_chunk_size_chunk_overlap(chunk_size=size,chunk_overlap=overlap)
+
+def handle_number_input_chunk_overlap(state,payload):
+    logger.info(f'{type(payload)}...{payload}')
+    state["number_input_chunk_overlap"]=int(payload)
+    size = state["number_input_chunk_size"]
+    overlap = state["number_input_chunk_overlap"]
+    update_config_file_with_chunk_size_chunk_overlap(chunk_size=size,chunk_overlap=overlap)
 
 # -------------------------- end handlers ---------------------
 # Initialise the state
@@ -84,6 +99,8 @@ initial_state = ss.init_state({
     "textarea_show_analysis":"Nothing to show now",
     "SHOULD_SHOW_ANALYSIS":False,
     "text_input_runner_status":"Ready!",
+    "number_input_chunk_size":1000,
+    "number_input_chunk_overlap":10
     #"text_input_docs_in_vector_store":get_vector_store_document_count()
 })
 

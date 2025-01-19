@@ -5,6 +5,7 @@ import json
 
 # local imports
 from src.agents.vector_store import VectorStore
+from src.utils.utils import load_config_params_for_node, get_project_filepath
 
 
 def get_list_of_files(path:str) -> str:
@@ -117,3 +118,36 @@ def get_vector_store_document_count() -> int:
     vs = VectorStore()
     return vs.get_document_count()
 
+def update_config_file_with_chunk_size_chunk_overlap(chunk_size:int,chunk_overlap:int) -> None:
+    """
+    Update config with chunk size so it can be read document process
+
+    Args:
+        -chunk size: Size of token chunks
+        -chunk overlap: Overlap of token chunks
+
+    Returns:
+        -
+    """
+    try:
+        if isinstance(chunk_size,int) and isinstance(chunk_overlap,int):
+            # load configs
+            filepath = f'{get_project_filepath()}/src/config/config.json'
+            with open(filepath,'r') as file:
+                configs = json.load(file)
+                configs["document_processor"]["chunk_size"]=chunk_size
+                configs["document_processor"]["chunk_overlap"]=chunk_overlap
+
+            # save updated configs
+            json_data = json.dumps(configs,indent=4)
+            with open(filepath,'w') as file:
+                file.write(json_data)
+
+            logger.info(f'config updated:{json_data}')
+        else:
+            logger.warning(f'Either overlap or size is wrong type: Overlap={type(chunk_overlap)} ... Size={type(chunk_size)}')
+
+    except KeyError as e:
+        logger.error(f'key error:{e}')
+    except Exception as e:
+        logger.error(f'error:{e}')
