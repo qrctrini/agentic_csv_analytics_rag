@@ -264,7 +264,7 @@
             "id": "mw5vi4jybgn50y5k",
             "type": "timer",
             "content": {
-                "intervalMs": "5000"
+                "intervalMs": "3000"
             },
             "isCodeManaged": false,
             "position": 1,
