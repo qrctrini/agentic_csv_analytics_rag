@@ -82,6 +82,22 @@ def from_agent_message_string_to_human_readable_string(txt:str) -> str:
         break
     return dct[i]
 
+def delete_file(file_path:str) -> None:
+    """
+    Delete file
+    Args:
+        file_path: location of file on system
+    Returns:
+        -
+    """
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        logger.info(f"The file {file_path} has been deleted.")
+    else:
+        logger.info(f"The file {file_path} does not exist.")
+
+
+
 def from_dict_to_string_for_frontend_output(txt:dict) -> str:
     """
     Clean dict of strings for human readable output

@@ -525,6 +525,20 @@
                 "eventType": "ss-change",
                 "stateRef": "text_input_query"
             }
+        },
+        "2rrotw6hxomul0sn": {
+            "id": "2rrotw6hxomul0sn",
+            "type": "button",
+            "parentId": "gm4dz5brevqxr6y5",
+            "content": {
+                "text": "Clear analysis",
+                "buttonTextColor": "#000000"
+            },
+            "handlers": {
+                "ss-click": "handle_button_clear_analysis"
+            },
+            "position": 1,
+            "visible": true
         }
     }
 }

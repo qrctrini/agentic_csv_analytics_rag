@@ -12,7 +12,8 @@ from frontend.utils import (
     clear_vector_store,
     update_config_file_with_chunk_size_chunk_overlap,
     get_project_filepath,
-    from_dict_to_string_for_frontend_output
+    from_dict_to_string_for_frontend_output,
+    delete_file
 
 )
 from src.agent import ragrunner
@@ -120,7 +121,10 @@ def handle_number_input_chunk_overlap(state,payload):
     overlap = state["number_input_chunk_overlap"]
     update_config_file_with_chunk_size_chunk_overlap(chunk_size=size,chunk_overlap=overlap)
 
-
+def handle_button_clear_analysis(state):
+    delete_file(file_path=f'{get_project_filepath()}/data/output/analysis_node_output.json')
+    state["textarea_show_analysis"] = "Nothing to show now"
+    state["SHOULD_SHOW_ANALYSIS"] = False
 
 # -------------------------- end handlers ---------------------
 # Initialise the state

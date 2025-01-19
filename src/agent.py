@@ -80,12 +80,19 @@ def create_agent_graph():
 def ragrunner(csv_folderpath:str=None,query:str=None) -> None: 
     """
     Run the entire thing using his function
+
+    Args:
+        csv_folderpath: location of csv files
+        query: user query on data
     """
-    #query = f"""Process csv files from 'dir_path':'{csv_folderpath}'"""
+    #csv_folderpath = f'{get_project_filepath()}/data/csv'
     if csv_folderpath is not None:
         analysis_prepend = f"1) Process csv files from 'dir_path':'{csv_folderpath}'. 2) Goto vector_store: Send the processed documents to vector_store as ONLY ONE big JSON array with keys : 'content','metadata' 3) Go to vector_store to save documents first. Then Use the analysis node to answer this question"
     else:
         analysis_prepend = f"Use the analysis node to answer this question:"
+    
+    if query is None:
+        query = f"Perform in-depth analysis on the data in the vector store collection"
     query = f"{analysis_prepend}: {query}"
     logger.info(f'{query=}')
 
