@@ -151,7 +151,8 @@ class InsuranceAnalysisAgent:
                     print(f'{type(message)=}...{message=}\n\n')
                     counter += 1
                     
-        save_dict_to_json_file(dct=messages,dir_path=self.configs['save_analysis_path'])
+        savepath = f'{get_project_filepath()}/data/output/analysis_node_output.json'
+        save_dict_to_json_file(dct=messages,dir_path=savepath)
         return messages
         
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
@@ -172,10 +173,3 @@ class InsuranceAnalysisAgent:
             "answer":output,
         }
      
-    
-
-# if __name__ == '__main__':
-#     ins = InsuranceAnalysisAgent()
-   
-#     state = ins.run(state={"messages":"you are a data analyst. Perform in depth analysis.Highlight trends, anomalies, make predictions for the future"})
-#     logger.info(f'state={state}')

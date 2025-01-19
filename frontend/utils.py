@@ -41,7 +41,9 @@ def get_list_of_files(path:str) -> str:
     """)
     return files
 
-def load_json_filedata(filepath:str='/tmp/analysis_node_response.json') -> dict:
+def load_json_filedata(
+        filepath:str=f'{get_project_filepath()}/data/output/analysis_node_output.json'
+    ) -> dict:
     """
     Load json file from filepath and convert contents to dct
     Args:
@@ -52,7 +54,7 @@ def load_json_filedata(filepath:str='/tmp/analysis_node_response.json') -> dict:
     try:
         with open(filepath,'r') as file:
             data = json.load(file)
-            return data.get('analysis').get('analysis_node_response')
+            return data.get('analysis')
     except FileNotFoundError:
         logger.error(f'error:file not found at {filepath}')
     except Exception as e:
@@ -80,6 +82,24 @@ def from_agent_message_string_to_human_readable_string(txt:str) -> str:
         break
     return dct[i]
 
+def from_dict_to_string_for_frontend_output(txt:dict) -> str:
+    """
+    Clean dict of strings for human readable output
+    Args:
+        txt: dictionary with text extracted from agent messages with poor formatting
+    Returns:
+        cleaned_data: cleaned string of output fit for human consumption
+    """
+    string = ''
+    for key in range(1,10):
+        text = txt.get(str(key))
+        text = clean_string(text)
+        logger.info(f'text={text}')
+        string = f'{string}{text}'
+
+        break
+    return string
+
 def clean_string(txt:str) -> str:
     """
     Replace non-human readable snippets in string
@@ -89,13 +109,15 @@ def clean_string(txt:str) -> str:
         txt: cleaned string of output fit for human consumption
     """
     logger.warning(f'text before clean:{txt}')
-    txt=txt.replace('"',"").split('\\n\\n')
-    string = ""
-    for i in txt:
-        string += f"\n{i}"
-    logger.info(f'cleaned string:{string}')
-    string=string.replace('\n',"")
-    return string
+    txt = txt.replace('Let me know if you need any other analysis on patterns in this data.',"")
+    # txt=txt.replace('"',"").split('\\n\\n')
+    # string = ""
+    # for i in txt:
+    #     if not i.__contains__("Let me know"):
+    #         string += f"\n{i}"
+    # logger.info(f'cleaned string:{string}')
+    # string=string.replace('\n',"")
+    return txt
 
 def clear_vector_store() -> str:
     """
@@ -151,3 +173,8 @@ def update_config_file_with_chunk_size_chunk_overlap(chunk_size:int,chunk_overla
         logger.error(f'key error:{e}')
     except Exception as e:
         logger.error(f'error:{e}')
+
+
+# if __name__ == '__main__':
+#     output = load_json_filedata()
+#     from_dict_to_string_for_frontend_output(output)

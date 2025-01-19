@@ -43,16 +43,16 @@ class VectorStore:
             metadatas: List of metadatas associated with the texts.
         """
         try:
-            logger.info("Initializing vector store")
-            # Initialize PGVector store
-            self.vector_store = PGVector(
-                embeddings=self.embeddings,
-                collection_name=self.collection_name,
-                connection=self.connection_string,
-                use_jsonb=True,
-            )
-           
-            logger.info(f'store initialized')
+            if self.vector_store is None:
+                # Initialize PGVector store
+                self.vector_store = PGVector(
+                    embeddings=self.embeddings,
+                    collection_name=self.collection_name,
+                    connection=self.connection_string,
+                    use_jsonb=True,
+                )
+            
+                logger.info(f'store initialized')
         except IOError as e:
             logger.error(f'Error: problem writing embeddings to postgres vector store:{e}')
     
@@ -89,8 +89,7 @@ class VectorStore:
         """
         logger.info(f"Adding {len(documents)} documents to vector store")
         # Adding embeddings with metadata
-        if self.vector_store is None:
-            self.init_store()
+        self.init_store()
         # add documents
         documents_added = self.vector_store.add_documents(documents)
         return documents_added
@@ -107,8 +106,7 @@ class VectorStore:
             List of similar documents
         """
         logger.warning(f"Performing similarity search for: {query}")
-        if self.vector_store is None:
-            self.init_store()
+        self.init_store()
        
         similar_docs = self.vector_store.similarity_search_with_score(query=query, k=k)
         return similar_docs

@@ -71,7 +71,7 @@ def save_dict_to_json_file(dct:dict,dir_path:str) -> None:
         json_data = json.dumps({
             "timestamp":datetime.now().__str__(),
             "analysis":dct,
-            })
+            },indent=4)
         with open(dir_path,'w') as file:
             file.write(json_data)
             logger.info(f'file written to {dir_path}')

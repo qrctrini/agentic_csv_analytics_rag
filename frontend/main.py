@@ -10,7 +10,9 @@ from frontend.utils import (
     from_agent_message_string_to_human_readable_string,
     get_vector_store_document_count,
     clear_vector_store,
-    update_config_file_with_chunk_size_chunk_overlap
+    update_config_file_with_chunk_size_chunk_overlap,
+    get_project_filepath,
+    from_dict_to_string_for_frontend_output
 
 )
 from src.agent import ragrunner
@@ -30,8 +32,10 @@ def handle_input_folder(state,payload):
 def handle_timer_display_analysis_tick(state:StreamsyncState):
     # handle analysis
     if state["SHOULD_SHOW_ANALYSIS"] == True:
-        text = load_json_filedata(filepath='/tmp/analysis_node_response.json')
-        cleaned_text = from_agent_message_string_to_human_readable_string(txt=text)
+        savepath = f'{get_project_filepath()}/data/output/analysis_node_output.json'
+        text = load_json_filedata(filepath=savepath)
+        #cleaned_text = from_agent_message_string_to_human_readable_string(txt=text)
+        cleaned_text = from_dict_to_string_for_frontend_output(txt=text)
         state["textarea_show_analysis"] = cleaned_text
     else:
         state["textarea_show_analysis"] = f"No analysis to show right now (@ {datetime.now().__str__()})"
