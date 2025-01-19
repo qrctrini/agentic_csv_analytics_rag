@@ -7,13 +7,7 @@ This is an AI-powered data analysis pipeline that processes and analyzes insuran
 
 ### Required Tools & Services
 
-1. Python packages:
-
-```
-pip install langchain langchain-core langchain-community langchain-anthropic langchain-postgres python-dotenv psycopg[binary] openai langchain-openai anthropic
-```
-
-2. API Keys & Services: 
+1. API Keys & Services: 
 Create .env file and place it in the root of your folder with these keys:
 ```
 ANTHROPIC_API_KEY=<Anthropic API key (for Claude)>
@@ -21,11 +15,12 @@ NEON_CONNECTION_STRING=<connection string for neon.tech postgress accoung accoun
 OPENAI_API_KEY=<Open AI key>
 ```
 
-3. How to run
+2. How to run
 - Install poetry 
 - Ensure that you are in the directory "insurance_analytic_rag"
-- Run command to start environment
+- Run commands to intall and start environment shell
 ```
+poetry install
 poetry shell
 ```
 - Run command to launch the GUI
@@ -34,7 +29,7 @@ streamsync run frontend
 ```
 - when you see "App is available at: http://127.0.0.1:3005", wait about 15 seconds, then go to the url to access the GUI.
 
-4. Using the GUI:
+3. Using the GUI:
 ![alt text](image.png)
 ![alt text](image-4.png)
 ![alt text](image-2.png)
