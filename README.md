@@ -17,7 +17,7 @@ OPENAI_API_KEY=<Open AI key>
 
 2. How to run
 - Install poetry 
-- Ensure that you are in the directory "insurance_analytic_rag"
+- Ensure that you are in the root directory (agentic_csv_analytics_rag)
 - Run commands to intall and start environment shell
 ```
 poetry install
