@@ -28,7 +28,11 @@ def get_list_of_files_in_directory(dir_path:str=None) -> list[str]:
         
     """
     # Get list of only files in the directory
-    files = [f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))]
+    files = []
+    try:
+        files = [f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f))]
+    except Exception as e:
+        logger.error(f'directory does not exist: {dir_path}')
     return files 
 
 def convert_excel_to_csv(dir_path:str,filename:str,save_to_dir:str) -> None:

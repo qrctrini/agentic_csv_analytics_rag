@@ -33,6 +33,8 @@ def get_list_of_files(path:str) -> str:
     except FileExistsError:
         logger.error(f'file not found')
         files = f"Sorry there was an error finding files at path: {csvs} \n Maybe double check the path?"
+    except Exception as e:
+        logger.error(f'Error: {e}')
 
     logger.info(f"""
             csvs
