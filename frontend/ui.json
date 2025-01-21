@@ -329,7 +329,10 @@
             "isCodeManaged": false,
             "position": 0,
             "parentId": "c6ixxc0rgn8s9v12",
-            "handlers": {},
+            "handlers": {
+                "ss-change-finish": "handle_input_folder",
+                "ss-change": "handle_input_folder"
+            },
             "visible": true,
             "binding": {
                 "eventType": "ss-change",
@@ -358,9 +361,6 @@
             "isCodeManaged": false,
             "position": 0,
             "parentId": "xug1afc1ketcb8se",
-            "handlers": {
-                "ss-change-finish": "handle_input_folder"
-            },
             "visible": true,
             "binding": {
                 "eventType": "ss-change",
@@ -529,15 +529,16 @@
         "2rrotw6hxomul0sn": {
             "id": "2rrotw6hxomul0sn",
             "type": "button",
-            "parentId": "gm4dz5brevqxr6y5",
             "content": {
                 "text": "Clear analysis",
                 "buttonTextColor": "#000000"
             },
+            "isCodeManaged": false,
+            "position": 1,
+            "parentId": "gm4dz5brevqxr6y5",
             "handlers": {
                 "ss-click": "handle_button_clear_analysis"
             },
-            "position": 1,
             "visible": true
         }
     }

@@ -30,9 +30,9 @@ def get_list_of_files(path:str) -> str:
             # Check if item is a file, not a directory
             if not os.path.isdir(os.path.join(path, file)):
                 files += f"{idx}. {file}\n"
-    except FileExistsError:
+    except FileExistsError as e1:
         logger.error(f'file not found')
-        files = f"Sorry there was an error finding files at path: {csvs} \n Maybe double check the path?"
+        files = f"Sorry there was an error finding files at path: {path} \n Maybe double check the path?"
     except Exception as e:
         logger.error(f'Error: {e}')
 

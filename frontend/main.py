@@ -128,7 +128,7 @@ def handle_button_clear_analysis(state):
 
 # -------------------------- end handlers ---------------------
 # Initialise the state
-input_folder = "/home/andre/workspace/aguide/projects/insurance_rag/insurance_analytic_rag/data/csv"
+input_folder = f"{get_project_filepath()}/data/csv"
 initial_state = ss.init_state({
     "my_app": {
         "title": "Agentic CSV Analytics RAG"
