@@ -40,7 +40,7 @@ ENV/
 # Project specific
 *.xlsx
 *.xls
-*.csv
+
 *.db
 *.sqlite3
 .neon/
