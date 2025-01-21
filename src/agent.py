@@ -17,6 +17,7 @@ from langchain.output_parsers.json import SimpleJsonOutputParser
 from langchain.prompts import PromptTemplate
 from langgraph.prebuilt import create_react_agent
 from langchain.schema import messages_to_dict, message_to_dict
+import argparse
 
 # agents
 from src.agents.document_processor import DocumentProcessor
@@ -113,7 +114,13 @@ def ragrunner(csv_folderpath:str=None,query:str=None) -> None:
     logger.info(f'{status_update=}')
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Insurance Data Analysis Pipeline')
+    parser.add_argument('--path', type=str, help='Path to CSV file for processing')
+    parser.add_argument('--query', type=str, help='Analysis query to run')
+
+    args = parser.parse_args()
+
     ragrunner(
-        csv_folderpath=f"{get_project_filepath()}/data/csv",
-        query="What's the trend in auto insurance costs over the last 3 years?"
+        csv_folderpath=args.path,
+        query=args.query
         )
